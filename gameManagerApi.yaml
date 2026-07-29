@@ -1,0 +1,890 @@
+openapi: 3.0.0
+info:
+  title: gameManagerApi
+  version: 1.0.0
+paths:
+  /game/delete_game?delete_all=0:
+    post:
+      summary: 删除游戏
+      operationId: e_utils_bruno_3_4_2_x64_win_bruno_gamemanager_yml
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: delete_all
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '0'
+      requestBody:
+        $ref: '#/components/requestBodies/'
+  /game/open_game:
+    post:
+      summary: 打开游戏
+      operationId: e_utils_bruno_3_4_2_x64_win_bruno_gamemanager_yml
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: string
+                  tmp_time:
+                    type: string
+              example:
+                status: 200
+                message: 已尝试打开游戏
+                data: ''
+                tmp_time: '2026-06-22 14:26:46'
+      requestBody:
+        $ref: '#/components/requestBodies/'
+  /game/get_game_by_category?category_id=a09e27dd1d494efa8504fef8721cafd2:
+    get:
+      summary: 按分类获取游戏
+      operationId: e_utils_bruno_3_4_2_x64_win_bruno_gamemanager_yml
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Id:
+                          type: string
+                        IconPath:
+                          type: string
+                        Name:
+                          type: string
+                        NickName:
+                          type: string
+                        Series:
+                          type: string
+                        Description:
+                          type: string
+                        Path:
+                          type: string
+                        StartPath:
+                          type: string
+                        Category:
+                          type: object
+                          properties:
+                            Id:
+                              type: string
+                            Name:
+                              type: string
+                            Num:
+                              type: integer
+                        Imgs:
+                          type: array
+                          items:
+                            type: string
+                        IsPlay:
+                          type: boolean
+                        IsDel:
+                          type: boolean
+                        InsertTime:
+                          type: string
+                  tmp_time:
+                    type: string
+              example:
+                status: 200
+                message: 查询成功
+                data:
+                  - Id: 82124636ed0d475bbd6ddd238ea85121
+                    IconPath: >-
+                      data:image/jpeg;base64,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qSDsea30YMgYdDXO+orW0ubfD5ZPK0gLtU87nZ/U1YnfbGfU8CoAMKBUyKgFNxu69KdRUmgAY6UUUtACUtFFAFOaBZOejetWIGzEM9RwabSRnZLg9G/nVMbXUnooqOaQRxFqkkpX825/LB4HWqlKxLMSeppVXua0SsZN3EVT1p9FFMAooooAKQkClpMAUAJuJ6CjDU6igBAD60tFFABRRRQAUUUUAFFFWIYf4n/AUASwjEQBpslvG/OMGpaZI6qpyaYygybWIHIplS0hANIQwMRTwwNNK03kUAS0UxWp4OelABRRRQAUEZoooAjK46008VN1pjLj6UgEB71IDmogMHjoafhkPzAgUAOp9tMYLgNng9aZSMMimBsF/NfeDlR0pazbOYr8uenatLqMis2aR2CiiikUFFFFABRRRQBDTXXcPftTqKssfE+9efvDg1U1CTkRj8albKHevUdR61nzP5kpb1pJamU9NBqjJp9AGBSZycCrMxaKKKACiiigAooooAKKKKACiiigAooooAKKVRk4zirC2w6ls0AR26bmyegq3QAFGAOKD0IpjIZp9vyr1qsSWOSaV1ZWORTaQgooooAKQqDS0UARlcUgJB5qWmMtADg2aWoulOVvWgB9FFFABRRRQAxhirVtMkg8mYDnoagpjLjpSauCdixcQmF8dVPQ1FVq3lFxEYZPvDoarMpVip6ihDaIySjZFa1tIJIFYVlkZFTWcjDMQbGelJq4RdjTopkLbo+eo60+oNAopvmLvC55NOoAKKKKBkNFFFWWRzttiY1nLyauXrYQL61UXgE0zGo9RWPYUAYFIvJyadTICiiigAooooAKKKKACkPqKWigAByKKYcqcinBgaAFoop8ZUHDjINADKcHYdGNTm3VhlTUbW7jpzQACdx708XPqKgKsOopKALDXCsMbc1ASD0FJRzQAUUmfUUbhQAtFGR60UAFFFFACFc1HjB4p5YZwKaTmgAVqkBzURHcUqt6UASUUgIIpaACiiigBvKOGU8jpViZhNGsy9ejCoSM01GMZI7HrSACdrZoOVIdeoobBGRSKexpgaMTeYgkQ4J609i5HzHA9qpWsnlSbT91qvYzU2C7GoVU7guT2pTJKzbUAHqaDu6LxQu9RgEZpNDTJx0oqLzHH3hke1L5yetKxaaG0UUVRqUr0/vAPQVXP3QKluzmY1EO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
+                    Name: Akari and the Abyss
+                    NickName: 亚里香与淫狱宫的深渊
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\Akari and the Abyss
+                    StartPath: G:\Game\rpg\plot\Akari and the Abyss\game.exe
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:24.2049901+08:00'
+                  - Id: af9fdbc6c91949e0ba7f2b0c1e66fb81
+                    IconPath: ''
+                    Name: Cursed_Blacksmith_v0.86
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\Cursed_Blacksmith_v0.86
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:24.7402406+08:00'
+                  - Id: e2831a7dbe8e449f81ad1e57247b9c2e
+                    IconPath: >-
+                      data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAASUAAAD8CAYAAAAxIbIkAAAQAElEQVR4Aex9C2BcVZn/b56ZJG1IaAkNaQOBChQK2ApUFFSqCBRhpboKqyu4iLgusvLwAcbHQsWV5aEIokgXxb9aWakoAspLkLdgy6O0QEsDbUPatCUhbZrpPP/f786cmXPv3HklM3me5P7mvL7znXN+d+bMd7577h1vMrYpWTF7g3X4RHJf6VvLgY2nwx0fSJHv/M8hjefKnpbcSO68N3AS7gi8CK+73sFd+0OoH/Lh231OY712+fjV7EB4ellXBF8UcLV+EVcJnEZT7x7MXZ3fxTr3pqHf+zY1xp7VNLONt3Sg9KPRwea8SPPRnzX/xKWSD+W+FdZ+q/2rsPPEltl3NPwVs9CYym5TOoTMssMyjAwXhj4/wAAAP//+xJ4kgAAAAZJREFUAwDeUeB5ajDbNwAAAABJRU5ErkJggg==
+                    Name: Hypnosis of Corruption
+                    NickName: 催眠之蚀
+                    Series: ''
+                    Description: 其实不算rpg，有点galgame的感觉
+                    Path: G:\Game\rpg\plot\Hypnosis of Corruption
+                    StartPath: >-
+                      G:\Game\rpg\plot\Hypnosis of Corruption\Hypnosis of
+                      Corruption.exe
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:25.2720535+08:00'
+                  - Id: 1880dbb8ca6c46b0ba63a5f2893efb5e
+                    IconPath: ''
+                    Name: Letina's Odyssey
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\Letina's Odyssey
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:25.8401614+08:00'
+                  - Id: 2db357ddb4f34673ae1a009a1a57b890
+                    IconPath: ''
+                    Name: Magna Fortuna
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\Magna Fortuna
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:26.4046581+08:00'
+                  - Id: ad4721ab0bff42d3a2d29530d087daad
+                    IconPath: ''
+                    Name: ReBF v2.00
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\ReBF v2.00
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:26.9344759+08:00'
+                  - Id: 93a9446183a64621a9e80ed39b28d5ee
+                    IconPath: ''
+                    Name: Rune Factory 3 Special
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\Rune Factory 3 Special
+                    StartPath: >-
+                      G:\Game\rpg\plot\Rune Factory 3 Special\Rune Factory 3
+                      Special.exe
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:27.6515975+08:00'
+                  - Id: 636bab35e3f849f6974e0c48014b13c4
+                    IconPath: ''
+                    Name: SEQUEL blight Ver.2.10
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\SEQUEL blight Ver.2.10
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:28.194219+08:00'
+                  - Id: 8239d8f0e3424a898fc8906848dd7d79
+                    IconPath: ''
+                    Name: The Agnietta v1.05
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\The Agnietta v1.05
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:28.8355051+08:00'
+                  - Id: 0f51717ce50d42c4b0dbf777060bb5e9
+                    IconPath: ''
+                    Name: bent
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\bent
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:29.369939+08:00'
+                  - Id: e0b1c3174731490ea7664d6e6f839e9b
+                    IconPath: ''
+                    Name: あまえんぼ冬_ver2.12
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\あまえんぼ冬_ver2.12
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:29.970174+08:00'
+                  - Id: 4af0569f9f9242eba4107a41b284d836
+                    IconPath: ''
+                    Name: ヤチヨノキヅナ
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\ヤチヨノキヅナ
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:30.5760839+08:00'
+                  - Id: f7f862a0a28d4fa8b11a5480c0cbacf0
+                    IconPath: ''
+                    Name: 一次性母猪 只有我知道的神秘规则
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\一次性母猪 只有我知道的神秘规则
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:31.0724304+08:00'
+                  - Id: 28b57f69f96144c8a7e332570589e1f4
+                    IconPath: ''
+                    Name: 世界树之根
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\世界树之根
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:31.7415122+08:00'
+                  - Id: ec10156892d6449f9fdf231e4e48b84a
+                    IconPath: ''
+                    Name: 乡村狂想曲
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\乡村狂想曲
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:32.3481403+08:00'
+                  - Id: 6d092e265b4e4d37bc124d08f33eb0e5
+                    IconPath: ''
+                    Name: 修女与光无法触及的森林
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\修女与光无法触及的森林
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:32.9144651+08:00'
+                  - Id: cdb24cc8e10d4acbad86973878335059
+                    IconPath: ''
+                    Name: 天才退魔师
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\天才退魔师
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:33.5550206+08:00'
+                  - Id: 12eb56261b24419786669ceb3113131b
+                    IconPath: ''
+                    Name: 王国骑士
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\王国骑士
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:34.200029+08:00'
+                  - Id: 84a35c0d6e694a3fa4b04d2aad2a317e
+                    IconPath: ''
+                    Name: 艾尼西亚与契约纹
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\艾尼西亚与契约纹
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:34.3279131+08:00'
+                  - Id: 7e0e770108b54fef89efbfd867001a5b
+                    IconPath: ''
+                    Name: 迷宫物语
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\迷宫物语
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:34.4627089+08:00'
+                  - Id: 36ab54cd14ab4c18b9dd3627302367ff
+                    IconPath: ''
+                    Name: 遗迹探索者
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\遗迹探索者
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:34.6118445+08:00'
+                  - Id: 3da05bad58af4c609b0b1bf31ca45525
+                    IconPath: >-
+                      data:image/jpeg;base64,/9j/2wCEAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk8BDg4OExETJhUVJk81LTVPT09PT09PT09PT09PT09PT09PT09pSbV/uigBvmttKl159KrXmCowSSfWreAOgrI8TTPBpU8kZwwXAPpRuVF2dzifFmq/aJvscD/uo/v47msfQZCmswYOMnFVpCTkk5J5NLpRxq9t/v1psZc7c1JnpJ4zWHfkTeIbaLj90ua3CfmI965u2Yv4un3c7QMfkKEepN6peZ0Z60lLRSLP/9k=
+                    Name: 零月的拉芙拉
+                    NickName: ''
+                    Series: ''
+                    Description: 百合
+                    Path: G:\Game\rpg\plot\零月的拉芙拉
+                    StartPath: G:\Game\rpg\plot\零月的拉芙拉\Game.exe
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:34.7364854+08:00'
+                  - Id: ff5e63833c8e401fa72fa6c93cc053a4
+                    IconPath: ''
+                    Name: 魔法少女天穹法妮娅
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\魔法少女天穹法妮娅
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:34.8486627+08:00'
+                  - Id: 20313c63b3344a00bd36623638b830d0
+                    IconPath: ''
+                    Name: 魔法少女本体+魔改版49.0
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\魔法少女本体+魔改版49.0
+                    StartPath: ''
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T23:37:34.9769649+08:00'
+                  - Id: cff1191c6af644b0bbd10266bc12eba2
+                    IconPath: ''
+                    Name: 触手錬金工房
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\触手錬金工房\触手錬金工房.exe
+                    StartPath: G:\Game\rpg\plot\触手錬金工房\触手錬金工房.exe
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-27T00:17:21.928355+08:00'
+                  - Id: ca94c15b557d434184b9cf98e4b5a223
+                    IconPath: >-
+                      data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAAdEAAAHRCAYAAAA1w4ObAAAQAElEQVR4Aez9WbBlS3rfh325hj2dqYY79e3hdqPnkSDYJEE2IQ4AKZCgHELTMCIkE4FQUGLQho0mZHZHyCE8UA6/+AWMYIRg+YUW5BfDNPjkYDgCDzKFCDmCoijMDTSGBho93VvDmfe89f99a+U6a++zdtU9VafurSFaAGdrgBDefu8Ddw+5qvNasBNaAG1ID9i5/dxV98dM+tQP32xkrUL/9+3RR1W1XbLb3bKr6XlV4++TZeBu//w+/Ch29/XKZ9f/kpfPzsn/4RfLxufyd6v2rgVRoojx/BdnDl7v8HL59/gCs+GjdwxQNX7vbCq3T7onXpSPRFDer1auAVGtCq1IAa6C8D2on21/uhrVEDakANqIEdZODfAwAA//+yTg9GAAAABklEQVQDAOyN1XBvbF1bAAAAAElFTkSuQmCC
+                    Name: Cycle_Of_Corruption
+                    NickName: ''
+                    Series: ''
+                    Description: >-
+                      欢迎来到歇斯底里的时代，一名迷茫的医生发现自己身处一座充斥着未知世界怪物的精神病院。你将在废弃肮脏的房间里穿梭，揭开精神病院的悲惨秘密，拼凑破碎的记忆和令人不安的文件。与此同时，魅魔潜伏在阴影中，考验着你的意志力和理智。抵御她们的诱惑，揭开围绕着这座精神病院——以及你自己——的重重谜团……
+
+
+                      ……或者，屈服于内心的黑暗
+                    Path: G:\Game\rpg\plot\Cycle_Of_Corruption
+                    StartPath: G:\Game\rpg\plot\Cycle_Of_Corruption\game.exe
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-04-22T20:35:00.8252348+08:00'
+                  - Id: f7f9414c6484477990919865f449212c
+                    IconPath: ''
+                    Name: MELFIAS －Azure and Crimson Verge
+                    NickName: 苍红界域
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\rpg\plot\MELFIAS －Azure and Crimson Verge－
+                    StartPath: >-
+                      G:\Game\rpg\plot\MELFIAS －Azure and Crimson
+                      Verge－\Game.exe
+                    Category:
+                      Id: a09e27dd1d494efa8504fef8721cafd2
+                      Name: ''
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-04-23T02:34:25.3818225+08:00'
+                tmp_time: '2026-06-22 14:07:54'
+      parameters:
+        - name: category_id
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: a09e27dd1d494efa8504fef8721cafd2
+  /game/get_game_by_condition:
+    post:
+      summary: 按条件获取游戏
+      operationId: e_utils_bruno_3_4_2_x64_win_bruno_gamemanager_yml
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Id:
+                          type: string
+                        IconPath:
+                          type: string
+                        Name:
+                          type: string
+                        NickName:
+                          type: string
+                        Series:
+                          type: string
+                        Description:
+                          type: string
+                        Path:
+                          type: string
+                        StartPath:
+                          type: string
+                        Category:
+                          type: object
+                          properties:
+                            Id:
+                              type: string
+                            Name:
+                              type: string
+                            Num:
+                              type: integer
+                        Imgs:
+                          type: array
+                          items:
+                            type: string
+                        IsPlay:
+                          type: boolean
+                        IsDel:
+                          type: boolean
+                        InsertTime:
+                          type: string
+                  tmp_time:
+                    type: string
+              example:
+                status: 200
+                message: 查询成功
+                data:
+                  - Id: 19e0ad0254b6409684511c1ba6e39fcc
+                    IconPath: ''
+                    Name: DECOY群青の魔女Ver1.03
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\act\DECOY群青の魔女Ver1.03
+                    StartPath: ''
+                    Category:
+                      Id: a47510f82eb54372b17cf5a96add96a1
+                      Name: act
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T21:24:50.1262323+08:00'
+                  - Id: 7f3f48d947da44d0b43d8babe8d9dc12
+                    IconPath: ''
+                    Name: 魔女复仇之夜
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\act\魔女复仇之夜
+                    StartPath: ''
+                    Category:
+                      Id: a47510f82eb54372b17cf5a96add96a1
+                      Name: act
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-03T21:24:59.9607452+08:00'
+                  - Id: 62b7af1fcb6949cc9fdbcda12e1bbe91
+                    IconPath: ''
+                    Name: Cradle-Epic 魔女への道
+                    NickName: ''
+                    Series: ''
+                    Description: ''
+                    Path: G:\Game\slg\Cradle-Epic 魔女への道
+                    StartPath: G:\Game\slg\Cradle-Epic 魔女への道\Cradle-Epic 魔女への道.exe
+                    Category:
+                      Id: 5057a93dd6864323b36440eefaa18f2d
+                      Name: slg
+                      Num: 0
+                    Imgs: []
+                    IsPlay: false
+                    IsDel: false
+                    InsertTime: '2026-02-08T16:46:34.8482371+08:00'
+                tmp_time: '2026-06-22 15:48:42'
+      requestBody:
+        $ref: '#/components/requestBodies/'
+  /game/get_game_by_condition?game_id=44ad30ef2abd4373ab9f6f07796d2b75:
+    get:
+      summary: 获取游戏的图片集
+      operationId: e_utils_bruno_3_4_2_x64_win_bruno_gamemanager_yml
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: string
+                  tmp_time:
+                    type: string
+              example:
+                status: 200
+                message: 查询成功
+                data: []
+                tmp_time: '2026-06-22 14:33:23'
+      parameters:
+        - name: game_id
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: 44ad30ef2abd4373ab9f6f07796d2b75
+  /game/predict_game:
+    post:
+      summary: 预测游戏信息
+      operationId: e_utils_bruno_3_4_2_x64_win_bruno_gamemanager_yml
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: string
+                  tmp_time:
+                    type: string
+              example:
+                status: 200
+                message: 已加入游戏
+                data: ''
+                tmp_time: '2026-06-22 20:15:11'
+      requestBody:
+        $ref: '#/components/requestBodies/'
+  /game/get_all_category:
+    get:
+      summary: 获取所有类型
+      operationId: e_utils_bruno_3_4_2_x64_win_bruno_gamemanager_yml
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Id:
+                          type: string
+                        Name:
+                          type: string
+                        Num:
+                          type: integer
+                  tmp_time:
+                    type: string
+              example:
+                status: 200
+                message: 查询成功
+                data:
+                  - Id: a09e27dd1d494efa8504fef8721cafd2
+                    Name: plot
+                    Num: 27
+                  - Id: 9fe0a7508eda4ff5a17adbe9c4336d55
+                    Name: sheshe
+                    Num: 10
+                  - Id: 5057a93dd6864323b36440eefaa18f2d
+                    Name: slg
+                    Num: 29
+                  - Id: a47510f82eb54372b17cf5a96add96a1
+                    Name: act
+                    Num: 35
+                  - Id: 3764789a5a4945a2a0cb0445b815a461
+                    Name: galgame
+                    Num: 45
+                  - Id: '000000'
+                    Name: 未分类
+                    Num: 0
+                tmp_time: '2026-06-22 19:50:16'
+  /game/edit_game:
+    post:
+      summary: 编辑游戏
+      operationId: e_utils_bruno_3_4_2_x64_win_bruno_gamemanager_yml
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  message:
+                    type: string
+                  data:
+                    type: string
+                  tmp_time:
+                    type: string
+              example:
+                status: 200
+                message: 修改成功
+                data: ''
+                tmp_time: '2026-06-22 20:30:03'
+      requestBody:
+        $ref: '#/components/requestBodies/'
+servers:
+  - url: http://127.0.0.1:10086
+    description: Base Server
+  - url: http://127.0.0.1:10086
+    description: test
+components:
+  schemas:
+    '':
+      type: object
+      properties:
+        id:
+          type: string
+        icon_path:
+          type: string
+        name:
+          type: string
+        nick_name:
+          type: string
+        description:
+          type: string
+        path:
+          type: string
+        start_path:
+          type: string
+        category_name:
+          type: string
+        category_id:
+          type: string
+        series:
+          type: string
+        is_play:
+          type: string
+        imgs:
+          type: array
+          items:
+            type: string
+  requestBodies:
+    '':
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/'
+      description: ''
+      required: true
+  securitySchemes: {}

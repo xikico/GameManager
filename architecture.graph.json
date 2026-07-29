@@ -1,0 +1,245 @@
+{
+  "direction": "TB",
+  "nodes": [
+    {
+      "id": "GameManager",
+      "label": "GameManager"
+    },
+    {
+      "id": "GameManager/adapters/in/gin_support",
+      "label": "adapters/in/gin_support",
+      "group": "adapters/in"
+    },
+    {
+      "id": "GameManager/adapters/in/gin_support/api",
+      "label": "adapters/in/gin_support/api",
+      "group": "adapters/in/gin_support"
+    },
+    {
+      "id": "GameManager/adapters/in/gin_support/entity",
+      "label": "adapters/in/gin_support/entity",
+      "group": "adapters/in/gin_support"
+    },
+    {
+      "id": "GameManager/adapters/in/gin_support/middle",
+      "label": "adapters/in/gin_support/middle",
+      "group": "adapters/in/gin_support"
+    },
+    {
+      "id": "GameManager/adapters/in/utils",
+      "label": "adapters/in/utils",
+      "group": "adapters/in"
+    },
+    {
+      "id": "GameManager/adapters/out/db/fake",
+      "label": "adapters/out/db/fake",
+      "group": "adapters/out/db"
+    },
+    {
+      "id": "GameManager/adapters/out/db/sqlite",
+      "label": "adapters/out/db/sqlite",
+      "group": "adapters/out/db"
+    },
+    {
+      "id": "GameManager/adapters/out/db/sqlite/entity",
+      "label": "adapters/out/db/sqlite/entity",
+      "group": "adapters/out/db/sqlite"
+    },
+    {
+      "id": "GameManager/adapters/out/db/sqlite/utils",
+      "label": "adapters/out/db/sqlite/utils",
+      "group": "adapters/out/db/sqlite"
+    },
+    {
+      "id": "GameManager/adapters/out/unzip",
+      "label": "adapters/out/unzip",
+      "group": "adapters/out"
+    },
+    {
+      "id": "GameManager/adapters/out/utils",
+      "label": "adapters/out/utils",
+      "group": "adapters/out"
+    },
+    {
+      "id": "GameManager/domain/entity",
+      "label": "domain/entity",
+      "group": "domain"
+    },
+    {
+      "id": "GameManager/domain/ports/in",
+      "label": "domain/ports/in",
+      "group": "domain/ports"
+    },
+    {
+      "id": "GameManager/domain/ports/out/db",
+      "label": "domain/ports/out/db",
+      "group": "domain/ports/out"
+    },
+    {
+      "id": "GameManager/domain/ports/out/unzip",
+      "label": "domain/ports/out/unzip",
+      "group": "domain/ports/out"
+    },
+    {
+      "id": "GameManager/domain/ports/out/utils",
+      "label": "domain/ports/out/utils",
+      "group": "domain/ports/out"
+    },
+    {
+      "id": "GameManager/domain/service",
+      "label": "domain/service",
+      "group": "domain"
+    },
+    {
+      "id": "GameManager/domain/utils",
+      "label": "domain/utils",
+      "group": "domain"
+    },
+    {
+      "id": "GameManager/script",
+      "label": "script"
+    }
+  ],
+  "edges": [
+    {
+      "source": "GameManager",
+      "target": "GameManager/adapters/in/gin_support"
+    },
+    {
+      "source": "GameManager",
+      "target": "GameManager/adapters/in/utils"
+    },
+    {
+      "source": "GameManager",
+      "target": "GameManager/adapters/out/db/sqlite"
+    },
+    {
+      "source": "GameManager",
+      "target": "GameManager/adapters/out/unzip"
+    },
+    {
+      "source": "GameManager",
+      "target": "GameManager/adapters/out/utils"
+    },
+    {
+      "source": "GameManager",
+      "target": "GameManager/domain/service"
+    },
+    {
+      "source": "GameManager/adapters/in/gin_support",
+      "target": "GameManager/adapters/in/gin_support/api"
+    },
+    {
+      "source": "GameManager/adapters/in/gin_support",
+      "target": "GameManager/adapters/in/gin_support/middle"
+    },
+    {
+      "source": "GameManager/adapters/in/gin_support",
+      "target": "GameManager/adapters/in/utils"
+    },
+    {
+      "source": "GameManager/adapters/in/gin_support",
+      "target": "GameManager/domain/ports/in"
+    },
+    {
+      "source": "GameManager/adapters/in/gin_support/api",
+      "target": "GameManager/adapters/in/gin_support/entity"
+    },
+    {
+      "source": "GameManager/adapters/in/gin_support/api",
+      "target": "GameManager/adapters/in/utils"
+    },
+    {
+      "source": "GameManager/adapters/in/gin_support/api",
+      "target": "GameManager/domain/ports/in"
+    },
+    {
+      "source": "GameManager/adapters/in/gin_support/middle",
+      "target": "GameManager/adapters/in/utils"
+    },
+    {
+      "source": "GameManager/adapters/in/utils",
+      "target": "GameManager/adapters/in/gin_support/entity"
+    },
+    {
+      "source": "GameManager/adapters/in/utils",
+      "target": "GameManager/domain/ports/in"
+    },
+    {
+      "source": "GameManager/adapters/out/db/fake",
+      "target": "GameManager/domain/entity"
+    },
+    {
+      "source": "GameManager/adapters/out/db/fake",
+      "target": "GameManager/domain/ports/out/db"
+    },
+    {
+      "source": "GameManager/adapters/out/db/sqlite",
+      "target": "GameManager/adapters/out/db/sqlite/entity"
+    },
+    {
+      "source": "GameManager/adapters/out/db/sqlite",
+      "target": "GameManager/adapters/out/db/sqlite/utils"
+    },
+    {
+      "source": "GameManager/adapters/out/db/sqlite",
+      "target": "GameManager/domain/entity"
+    },
+    {
+      "source": "GameManager/adapters/out/db/sqlite",
+      "target": "GameManager/domain/ports/out/db"
+    },
+    {
+      "source": "GameManager/adapters/out/db/sqlite/utils",
+      "target": "GameManager/domain/entity"
+    },
+    {
+      "source": "GameManager/adapters/out/utils",
+      "target": "GameManager/domain/entity"
+    },
+    {
+      "source": "GameManager/adapters/out/utils",
+      "target": "GameManager/domain/ports/out/utils"
+    },
+    {
+      "source": "GameManager/domain/ports/out/db",
+      "target": "GameManager/domain/entity"
+    },
+    {
+      "source": "GameManager/domain/ports/out/utils",
+      "target": "GameManager/domain/entity"
+    },
+    {
+      "source": "GameManager/domain/service",
+      "target": "GameManager/domain/entity"
+    },
+    {
+      "source": "GameManager/domain/service",
+      "target": "GameManager/domain/ports/in"
+    },
+    {
+      "source": "GameManager/domain/service",
+      "target": "GameManager/domain/ports/out/db"
+    },
+    {
+      "source": "GameManager/domain/service",
+      "target": "GameManager/domain/ports/out/unzip"
+    },
+    {
+      "source": "GameManager/domain/service",
+      "target": "GameManager/domain/ports/out/utils"
+    },
+    {
+      "source": "GameManager/domain/service",
+      "target": "GameManager/domain/utils"
+    },
+    {
+      "source": "GameManager/domain/utils",
+      "target": "GameManager/domain/entity"
+    },
+    {
+      "source": "GameManager/domain/utils",
+      "target": "GameManager/domain/ports/in"
+    }
+  ]
+}

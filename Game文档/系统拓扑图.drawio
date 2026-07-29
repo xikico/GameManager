@@ -1,0 +1,62 @@
+<mxfile host="65bd71144e">
+    <diagram id="0" name="系统拓扑图">
+        <mxGraphModel dx="1426" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <!-- 本地环境 -->
+                <mxCell id="2" value="&lt;b&gt;用户本地主机环境&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="50" width="727" height="1100" as="geometry"/>
+                </mxCell>
+                <!-- 用户端 -->
+                <mxCell id="3" value="用户设备" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="2" vertex="1">
+                    <mxGeometry x="303" y="100" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <!-- 浏览器 -->
+                <mxCell id="4" value="Web浏览器&lt;br&gt;(Vue3前端界面)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="2" vertex="1">
+                    <mxGeometry x="303" y="190" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <!-- HTTP通信 -->
+                <mxCell id="5" value="HTTP API (localhost:端口)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="280" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <!-- 后端服务 -->
+                <mxCell id="6" value="GameManager后端服务&lt;br&gt;(Go Gin HTTP服务)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="2" vertex="1">
+                    <mxGeometry x="303" y="320" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <!-- 业务逻辑层 -->
+                <mxCell id="7" value="领域业务逻辑层&lt;br&gt;(核心功能实现)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="2" vertex="1">
+                    <mxGeometry x="303" y="410" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <!-- 存储层 -->
+                <mxCell id="8" value="SQLite数据库&lt;br&gt;(本地文件存储)" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="2" vertex="1">
+                    <mxGeometry x="303" y="500" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <!-- 本地游戏文件 -->
+                <mxCell id="9" value="本地游戏文件目录&lt;br&gt;(游戏资源存储)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="2" vertex="1">
+                    <mxGeometry x="303" y="610" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <!-- 连接线 -->
+                <mxCell id="10" value="" style="endArrow=classic;html=1;" parent="1" source="3" target="4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="" style="endArrow=classic;html=1;" parent="1" source="4" target="6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="" style="endArrow=classic;html=1;" parent="1" source="6" target="7" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="" style="endArrow=classic;html=1;" parent="1" source="7" target="8" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="" style="endArrow=classic;html=1;" parent="1" source="7" target="9" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- 说明 -->
+                <mxCell id="15" value="&lt;b&gt;说明：&lt;/b&gt;&lt;br&gt;1. 整套系统完全运行在用户本地&lt;br&gt;2. 所有数据存储在本地SQLite文件&lt;br&gt;3. 游戏资源直接读取本地文件系统&lt;br&gt;4. 无外部网络依赖，无需联网使用" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="690" width="527" height="120" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
