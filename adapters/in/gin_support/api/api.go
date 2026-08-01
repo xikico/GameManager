@@ -4,12 +4,13 @@ import (
 	"GameManager/adapters/in/gin_support/entity"
 	"GameManager/adapters/in/utils"
 	"GameManager/domain/ports/in"
-	"github.com/gin-gonic/gin"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type GinAPI struct {
@@ -86,6 +87,9 @@ func (g *GinAPI) PredictGame(c *gin.Context) {
 		for _, entry := range entries {
 			game := in.GameDTO{
 				Path: filepath.Join(path, entry.Name()),
+				Category: in.CategoryDTO{
+					Name: filepath.Base(path),
+				},
 			}
 			game, err = g.inPort.PredictGame(game)
 			if err != nil {

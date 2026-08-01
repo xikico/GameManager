@@ -6,11 +6,12 @@ import (
 	"GameManager/domain/entity"
 	"GameManager/domain/ports/out/db"
 	"errors"
+	"sync"
+	"time"
+
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"sync"
-	"time"
 )
 
 var once = sync.Once{}
@@ -122,6 +123,7 @@ func (s *sqliteDB) SaveGames(games []entity.Game) error {
 	if currCategory.Id == "" {
 		newCategoryId, _ = addCategory(db, sqliteEntity.Category{Name: games[0].Category.Name, Num: len(games)})
 	} else {
+		newCategoryId = currCategory.Id
 		addCategoryNum(db, currCategory, len(games))
 	}
 	dbGames := make([]sqliteEntity.Game, 0, len(games))
