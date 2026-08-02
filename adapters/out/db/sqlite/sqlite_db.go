@@ -61,6 +61,11 @@ func newSqliteDB() (*sqliteDB, error) {
 	sqlDB.SetConnMaxLifetime(30 * time.Minute)
 	sqlDB.SetConnMaxIdleTime(15 * time.Minute)
 
+	// 自动建表
+	if err := dbObj.AutoMigrate(&sqliteEntity.Category{}, &sqliteEntity.Game{}); err != nil {
+		return nil, err
+	}
+
 	// 测试连接，顺手检查一下有没有默认分类
 	category := sqliteEntity.Category{}
 	if err = dbObj.Where("id = ?", "000000").Find(&category).Error; err != nil {
