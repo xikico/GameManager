@@ -1,17 +1,23 @@
 package main
 
 import (
-	"GameManager/adapters/in/gin_support"
+	"GameManager/adapters/in/wails_support"
 	utils2 "GameManager/adapters/in/utils"
 	"GameManager/adapters/out/db/sqlite"
 	unzip2 "GameManager/adapters/out/unzip"
 	"GameManager/adapters/out/utils"
 	"GameManager/domain/service"
 	"context"
+	"embed"
+
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"go.uber.org/zap"
-	"os/exec"
-	"time"
 )
+
+//go:embed all:frontend/dist
+var assets embed.FS
 
 func main() {
 	log := utils2.GetLogger()
@@ -25,19 +31,25 @@ func main() {
 	defer cancel()
 
 	gameManager := service.NewGameManager(db, utils, unzip)
-
-	go func() {
-		time.Sleep(300 * time.Millisecond) // 等待服务就绪
-		cmd := exec.Command("cmd", "/c", "start", "http://127.0.0.1:10086/ui")
-		err := cmd.Start()
-		if err != nil {
-			log.Fatal("自动打开浏览器失败:", zap.Error(err))
-		}
-	}()
 	go utils.Img2Base64(ctx)
 
-	err = gin_support.StartGinServer(gameManager)
+	app := wails_support.NewApp(gameManager)
+
+	err = wails.Run(&options.App{
+		Title:  "游戏管理器",
+		Width:  1280,
+		Height: 800,
+		AssetServer: &assetserver.Options{
+			Assets: assets,
+		},
+		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 59, A: 1},
+		OnStartup:        app.Startup,
+		OnShutdown:       app.Shutdown,
+		Bind: []interface{}{
+			app,
+		},
+	})
 	if err != nil {
-		log.Fatal("服务器启动失败", zap.Error(err))
+		log.Fatal("桌面应用启动失败", zap.Error(err))
 	}
 }
