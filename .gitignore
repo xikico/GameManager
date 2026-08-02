@@ -7,5 +7,3 @@ build/
 frontend/node_modules/
 frontend/dist/
 frontend/bindings/
-frontend/wailsjs/
-package-lock.json

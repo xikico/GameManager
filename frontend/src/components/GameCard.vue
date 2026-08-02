@@ -94,7 +94,8 @@ function open() {
 .card-icon img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 4px;
 }
 .icon-placeholder {
   font-size: 40px;

@@ -263,7 +263,8 @@ function close() {
   width: 64px;
   height: 64px;
   border-radius: 8px;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 3px;
   border: 1px solid var(--border);
   background: var(--bg-soft);
   flex-shrink: 0;
@@ -322,7 +323,8 @@ function close() {
 .img-item img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 2px;
   cursor: zoom-in;
 }
 .img-remove {
