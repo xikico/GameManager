@@ -238,6 +238,16 @@ func (g *GinAPI) EditGame(c *gin.Context) {
 			imgsData = append(imgsData, data)
 		}
 	}
+	// 未提交任何图片时保持原有截图不变（全量替换语义下需要回填现有图片）
+	if len(imgsData) == 0 {
+		existing, err := g.inPort.GetGameImgs(request.Id)
+		if err == nil && existing != nil {
+			imgsData = make([][]byte, len(existing))
+			for i, img := range existing {
+				imgsData[i] = img
+			}
+		}
+	}
 	game := utils.GameFormVo2DTO(request, imgsData)
 	if game.IconPath != "" {
 		game.IconPath = procesIconPath(game.IconPath)

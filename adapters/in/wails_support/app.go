@@ -193,8 +193,8 @@ type EditGamePayload struct {
 	StartPath   string
 	CategoryId  string
 	IsPlay      bool
-	// NewImgs 新增的展示图，data URL 形式（仅提交新增/替换的图片）
-	NewImgs []string
+	// Imgs 完整的最终展示图列表（data URL），全量替换；传空数组则清空截图
+	Imgs []string
 }
 
 func (a *App) EditGame(payload EditGamePayload) error {
@@ -210,10 +210,14 @@ func (a *App) EditGame(payload EditGamePayload) error {
 		Category:    in.CategoryDTO{Id: payload.CategoryId},
 		IsPlay:      payload.IsPlay,
 	}
-	for _, dataURLStr := range payload.NewImgs {
-		data, err := decodeDataURL(dataURLStr)
-		if err == nil {
-			game.Imgs = append(game.Imgs, data)
+	// Imgs != nil 时执行全量替换（空数组 = 清空截图）；未提供该字段则不修改
+	if payload.Imgs != nil {
+		game.Imgs = make([]in.Img, 0, len(payload.Imgs))
+		for _, dataURLStr := range payload.Imgs {
+			data, err := decodeDataURL(dataURLStr)
+			if err == nil {
+				game.Imgs = append(game.Imgs, data)
+			}
 		}
 	}
 	return a.manager.EditGame(game, game)

@@ -61,9 +61,9 @@
         <div class="edit-imgs">
           <div class="imgs-title">游戏截图（{{ displayImgs.length }}）</div>
           <div class="img-grid">
-            <div v-for="(img, i) in displayImgs" :key="i" class="img-item">
+            <div v-for="(img, i) in displayImgs" :key="img + i" class="img-item">
               <img :src="img" alt="" @click="previewImg = img" />
-              <button v-if="newImgs.includes(img)" class="img-remove" @click="removeNewImg(img)">×</button>
+              <button class="img-remove" @click="removeImg(img)">×</button>
             </div>
             <label class="img-add">
               <input type="file" accept="image/*" multiple hidden @change="onPickImgs" />
@@ -114,6 +114,7 @@ const saving = ref(false)
 const iconSrc = ref('')
 const oldImgs = ref<string[]>([])
 const newImgs = ref<string[]>([])
+const removedImgs = ref<string[]>([])
 const previewImg = ref('')
 const showDelete = ref(false)
 
@@ -129,7 +130,10 @@ const form = reactive({
   IsPlay: props.game.IsPlay,
 })
 
-const displayImgs = computed(() => [...oldImgs.value, ...newImgs.value])
+const displayImgs = computed(() => [
+  ...oldImgs.value.filter((i) => !removedImgs.value.includes(i)),
+  ...newImgs.value,
+])
 
 onMounted(async () => {
   try {
@@ -160,8 +164,12 @@ function onPickImgs(e: Event) {
   ;(e.target as HTMLInputElement).value = ''
 }
 
-function removeNewImg(img: string) {
-  newImgs.value = newImgs.value.filter((i) => i !== img)
+function removeImg(img: string) {
+  if (newImgs.value.includes(img)) {
+    newImgs.value = newImgs.value.filter((i) => i !== img)
+  } else if (!removedImgs.value.includes(img)) {
+    removedImgs.value.push(img)
+  }
 }
 
 async function save() {
@@ -182,7 +190,7 @@ async function save() {
       StartPath: form.StartPath.trim(),
       CategoryId: form.CategoryId,
       IsPlay: form.IsPlay,
-      NewImgs: newImgs.value,
+      Imgs: displayImgs.value,
     })
     emit('saved')
     emit('close')

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"GameManager/adapters/in/wails_support"
 	utils2 "GameManager/adapters/in/utils"
+	"GameManager/adapters/in/wails_support"
 	"GameManager/adapters/out/db/sqlite"
 	unzip2 "GameManager/adapters/out/unzip"
 	"GameManager/adapters/out/utils"
@@ -13,6 +13,7 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
 	"go.uber.org/zap"
 )
 
@@ -47,6 +48,10 @@ func main() {
 		OnShutdown:       app.Shutdown,
 		Bind: []interface{}{
 			app,
+		},
+		Windows: &windows.Options{
+			// 使用相对路径 "./wails_data"
+			WebviewUserDataPath: "./wails_data",
 		},
 	})
 	if err != nil {

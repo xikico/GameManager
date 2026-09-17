@@ -83,19 +83,19 @@
             暂无游戏数据
           </div>
           <div v-else class="game-grid">
-            <SeriesCard
-              v-for="s in seriesCards"
-              :key="'series-' + s.name"
-              :group="s"
-              @open="openSeries"
-            />
-            <GameCard
-              v-for="g in normalGames"
-              :key="g.Id"
-              :game="g"
-              @edit="openEdit"
-              @delete="onDelete"
-            />
+            <template v-for="item in gridItems" :key="item.type === 'series' ? 'series-' + item.group.name : item.game.Id">
+              <SeriesCard
+                v-if="item.type === 'series'"
+                :group="item.group"
+                @open="openSeries"
+              />
+              <GameCard
+                v-else
+                :game="item.game"
+                @edit="openEdit"
+                @delete="onDelete"
+              />
+            </template>
           </div>
         </template>
       </div>
@@ -183,6 +183,22 @@ const seriesCards = computed<SeriesGroup[]>(() => {
 const normalGames = computed<GameDTO[]>(() =>
   games.value.filter((g) => !(g.Series || '').trim()),
 )
+
+type GridItem = { type: 'series'; group: SeriesGroup } | { type: 'game'; game: GameDTO }
+
+const gridItems = computed<GridItem[]>(() => {
+  const items: GridItem[] = [
+    ...seriesCards.value.map((s) => ({ type: 'series' as const, group: s })),
+    ...normalGames.value.map((g) => ({ type: 'game' as const, game: g })),
+  ]
+  return items.sort((a, b) => {
+    const ta =
+      a.type === 'series' ? new Date(a.group.latest.InsertTime).getTime() : new Date(a.game.InsertTime).getTime()
+    const tb =
+      b.type === 'series' ? new Date(b.group.latest.InsertTime).getTime() : new Date(b.game.InsertTime).getTime()
+    return tb - ta
+  })
+})
 
 function buildCondition() {
   return {

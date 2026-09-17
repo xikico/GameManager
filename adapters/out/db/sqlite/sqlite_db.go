@@ -304,7 +304,8 @@ func (s *sqliteDB) EditGame(oldGame entity.Game, newGame entity.Game) error {
 		"is_del":      newGame.IsDel,
 	}
 
-	if len(newGame.Imgs) > 0 {
+	// imgs 为完整最终列表：nil 表示不修改，空列表表示清空全部截图
+	if newGame.Imgs != nil {
 		update["imgs"] = string(utils.Pack(newGame.Imgs...))
 	}
 

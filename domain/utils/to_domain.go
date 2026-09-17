@@ -6,10 +6,13 @@ import (
 )
 
 func GameToDomain(g in.GameDTO) *entity.Game {
-	// 转换图片切片
-	imgs := make([]entity.Img, len(g.Imgs))
-	for i, data := range g.Imgs {
-		imgs[i] = entity.Img(data)
+	// 转换图片切片（保留 nil 语义：nil 表示未提供，空切片表示清空）
+	var imgs []entity.Img
+	if g.Imgs != nil {
+		imgs = make([]entity.Img, len(g.Imgs))
+		for i, data := range g.Imgs {
+			imgs[i] = entity.Img(data)
+		}
 	}
 
 	return &entity.Game{
