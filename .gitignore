@@ -9,3 +9,14 @@ frontend/dist/
 frontend/bindings/
 frontend/wailsjs/
 package-lock.json
+*.iml
+.opencode/
+.vscode/
+vendor/
+*.out
+*.test
+*.prof
+npm-debug.log*
+yarn-error.log*
+yarn.lock
+pnpm-lock.yaml
