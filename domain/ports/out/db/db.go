@@ -10,4 +10,6 @@ type DB interface {
 	GetGameByCondition(condition entity.SearchGameCondition) ([]entity.Game, error)
 	GetAllCategory() ([]entity.Category, error)
 	EditGame(oldGame entity.Game, newGame entity.Game) error
+	GetSettings() (entity.Settings, error)
+	SaveSettings(settings entity.Settings) error
 }

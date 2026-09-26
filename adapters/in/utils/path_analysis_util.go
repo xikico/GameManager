@@ -1,6 +1,7 @@
 package utils
 
 import (
+	domainUtils "GameManager/domain/utils"
 	"fmt"
 	"os"
 )
@@ -16,6 +17,7 @@ const (
 
 // AnalysisPath 判断文件路径的类型：
 func AnalysisPath(filePath string) (PathType, error) {
+	filePath = domainUtils.NormalizePath(filePath)
 	// 获取文件信息
 	info, err := os.Stat(filePath)
 	if err != nil {

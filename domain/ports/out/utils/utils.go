@@ -9,4 +9,5 @@ type Utils interface {
 	OpenGame(game *entity.Game) error
 	DeleteGame(game *entity.Game) error
 	Img2Base64(ctx context.Context)
+	SetClipboardImageDetectionEnabled(enabled bool)
 }

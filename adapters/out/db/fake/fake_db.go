@@ -7,10 +7,12 @@ import (
 )
 
 func GetDB() db.DB {
-	return &fakeDBImpl{}
+	return &fakeDBImpl{settings: entity.Settings{ClipboardImageDetectionEnabled: true}}
 }
 
-type fakeDBImpl struct{}
+type fakeDBImpl struct {
+	settings entity.Settings
+}
 
 func (f *fakeDBImpl) SaveGame(game entity.Game) error {
 	fmt.Printf("保存game：%+v \n", game)
@@ -40,5 +42,14 @@ func (f *fakeDBImpl) GetAllCategory() ([]entity.Category, error) {
 }
 
 func (f *fakeDBImpl) EditGame(oldGame entity.Game, newGame entity.Game) error {
+	return nil
+}
+
+func (f *fakeDBImpl) GetSettings() (entity.Settings, error) {
+	return f.settings, nil
+}
+
+func (f *fakeDBImpl) SaveSettings(settings entity.Settings) error {
+	f.settings = settings
 	return nil
 }

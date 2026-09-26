@@ -7,6 +7,7 @@ package wails_support
 
 import (
 	"GameManager/domain/ports/in"
+	domainUtils "GameManager/domain/utils"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -39,6 +40,16 @@ func (a *App) GetAllCategory() ([]in.CategoryDTO, error) {
 	return a.manager.GetAllCategory()
 }
 
+// ---------- 设置 ----------
+
+func (a *App) GetSettings() (in.SettingsDTO, error) {
+	return a.manager.GetSettings()
+}
+
+func (a *App) UpdateSettings(settings in.SettingsDTO) error {
+	return a.manager.UpdateSettings(settings)
+}
+
 // ---------- 游戏查询 ----------
 
 // GetGames 按条件查询游戏（不传条件则返回全部）
@@ -66,6 +77,7 @@ func (a *App) GetGameImgs(gameId string) ([]string, error) {
 // IconToBase64 将图标路径转换为 base64 data URL。
 // 若路径不存在或读取失败返回空字符串。
 func (a *App) IconToBase64(iconPath string) string {
+	iconPath = domainUtils.NormalizePath(iconPath)
 	if strings.HasPrefix(iconPath, "data:") {
 		return iconPath
 	}
@@ -91,6 +103,7 @@ func (a *App) DeleteGame(game in.GameDTO, delAll bool) error {
 
 // OpenFolder 在资源管理器中打开指定目录
 func (a *App) OpenFolder(path string) error {
+	path = domainUtils.NormalizePath(path)
 	if path == "" {
 		return errors.New("路径不能为空")
 	}
@@ -110,6 +123,7 @@ type AddGameResult struct {
 // 文件夹 → 预测信息后入库；压缩包 → 先解压再入库；
 // 包含多个子游戏的文件夹 → 返回 IsMany=true，由前端确认后调用 ConfirmAddMany。
 func (a *App) AddGame(path, password string) (AddGameResult, error) {
+	path = domainUtils.NormalizePath(path)
 	pathType, err := analysisPath(path)
 	if err != nil {
 		return AddGameResult{}, err
@@ -140,6 +154,7 @@ func (a *App) AddGame(path, password string) (AddGameResult, error) {
 
 // ConfirmAddMany 将文件夹内的所有子目录批量添加，并把文件夹名作为分类
 func (a *App) ConfirmAddMany(path string) error {
+	path = domainUtils.NormalizePath(path)
 	f, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("打不开文件夹：%w", err)
@@ -200,13 +215,13 @@ type EditGamePayload struct {
 func (a *App) EditGame(payload EditGamePayload) error {
 	game := in.GameDTO{
 		Id:          payload.Id,
-		IconPath:    payload.IconPath,
+		IconPath:    domainUtils.NormalizePath(payload.IconPath),
 		Name:        payload.Name,
 		NickName:    payload.NickName,
 		Series:      payload.Series,
 		Description: payload.Description,
-		Path:        strings.ReplaceAll(payload.Path, "\"", ""),
-		StartPath:   strings.ReplaceAll(payload.StartPath, "\"", ""),
+		Path:        domainUtils.NormalizePath(payload.Path),
+		StartPath:   domainUtils.NormalizePath(payload.StartPath),
 		Category:    in.CategoryDTO{Id: payload.CategoryId},
 		IsPlay:      payload.IsPlay,
 	}

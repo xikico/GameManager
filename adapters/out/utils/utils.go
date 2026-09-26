@@ -14,16 +14,24 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 	"unsafe"
 )
 
 type Utils struct {
+	clipboardImageDetectionEnabled atomic.Bool
 }
 
 func GetUtils() utils.Utils {
-	return &Utils{}
+	u := &Utils{}
+	u.clipboardImageDetectionEnabled.Store(true)
+	return u
+}
+
+func (u *Utils) SetClipboardImageDetectionEnabled(enabled bool) {
+	u.clipboardImageDetectionEnabled.Store(enabled)
 }
 
 func (u *Utils) OpenGame(game *entity.Game) error {
@@ -49,10 +57,14 @@ func (u *Utils) Img2Base64(ctx context.Context) {
 		return
 	}
 
-	timer := time.Tick(500 * time.Millisecond)
+	timer := time.NewTicker(500 * time.Millisecond)
+	defer timer.Stop()
 	for {
 		select {
-		case <-timer:
+		case <-timer.C:
+			if !u.clipboardImageDetectionEnabled.Load() {
+				continue
+			}
 			// 2. 尝试读取剪贴板中的图片数据（PNG格式）
 			//    注意：Read(FmtImage) 总是返回 PNG 编码的数据[reference:2]
 			imgData := clipboard.Read(clipboard.FmtImage)

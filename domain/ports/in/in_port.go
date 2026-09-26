@@ -11,4 +11,6 @@ type GameManager interface {
 	GetGameByCondition(condition SearchGameConditionDTO) ([]GameDTO, error)
 	GetAllCategory() ([]CategoryDTO, error)
 	EditGame(oldGame GameDTO, newGame GameDTO) error
+	GetSettings() (SettingsDTO, error)
+	UpdateSettings(settings SettingsDTO) error
 }

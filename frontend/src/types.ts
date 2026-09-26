@@ -36,6 +36,10 @@ export interface AddGameResult {
   message: string
 }
 
+export interface SettingsDTO {
+  ClipboardImageDetectionEnabled: boolean
+}
+
 export interface EditGamePayload {
   Id: string
   IconPath: string

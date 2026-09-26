@@ -4,13 +4,6 @@
       <div class="logo">游戏管理器</div>
       <nav class="category-list">
         <div
-          class="category-item"
-          :class="{ active: !currentCategoryId && !seriesView }"
-          @click="selectAll"
-        >
-          全部
-        </div>
-        <div
           v-for="c in visibleCategories"
           :key="c.Id"
           class="category-item"
@@ -63,10 +56,16 @@
           <button class="btn" @click="loadGames">搜索</button>
         </div>
 
-        <button class="btn btn-primary btn-add" @click="showAdd = true">添加游戏</button>
+        <div class="toolbar-actions">
+          <button class="btn btn-settings" title="设置" @click="showSettings = true">
+            <span aria-hidden="true">⚙</span>
+            设置
+          </button>
+          <button class="btn btn-primary btn-add" @click="showAdd = true">添加游戏</button>
+        </div>
       </header>
 
-      <div class="content">
+      <div ref="contentEl" class="content">
         <div v-if="seriesView" class="game-grid">
           <GameCard
             v-for="g in seriesGames"
@@ -78,7 +77,7 @@
           <div v-if="seriesGames.length === 0" class="empty">该系列暂无游戏</div>
         </div>
         <template v-else>
-          <div v-if="loading" class="empty">加载中...</div>
+          <div v-if="loading && games.length === 0" class="empty">加载中...</div>
           <div v-else-if="seriesCards.length === 0 && normalGames.length === 0" class="empty">
             暂无游戏数据
           </div>
@@ -102,6 +101,7 @@
     </main>
 
     <AddDialog v-if="showAdd" @close="showAdd = false" @added="onAdded" />
+    <SettingsDialog v-if="showSettings" @close="showSettings = false" />
     <EditDialog
       v-if="editing"
       :game="editing"
@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { api } from './api'
 import type { CategoryDTO, GameDTO, SeriesGroup } from './types'
 import GameCard from './components/GameCard.vue'
@@ -127,6 +127,7 @@ import SeriesCard from './components/SeriesCard.vue'
 import AddDialog from './components/AddDialog.vue'
 import EditDialog from './components/EditDialog.vue'
 import DeleteConfirmDialog from './components/DeleteConfirmDialog.vue'
+import SettingsDialog from './components/SettingsDialog.vue'
 
 const categories = ref<CategoryDTO[]>([])
 const games = ref<GameDTO[]>([])
@@ -144,8 +145,10 @@ const dateFrom = ref('')
 const dateTo = ref('')
 
 const showAdd = ref(false)
+const showSettings = ref(false)
 const editing = ref<GameDTO | null>(null)
 const deleting = ref<GameDTO | null>(null)
+const contentEl = ref<HTMLElement | null>(null)
 
 const allGamesInSeries = new Map<string, GameDTO[]>()
 
@@ -238,11 +241,6 @@ async function loadCategories() {
   }
 }
 
-function selectAll() {
-  currentCategoryId.value = ''
-  loadGames()
-}
-
 function selectCategory(id: string) {
   currentCategoryId.value = id
   loadGames()
@@ -282,18 +280,37 @@ function doDelete(delAll: boolean) {
 }
 
 function onAdded() {
-  loadGames()
-  loadCategories()
+  refreshLibrary(false)
 }
 
-function onSaved() {
-  loadGames()
-  loadCategories()
+async function onSaved() {
+  await refreshLibrary(true)
 }
 
-onMounted(() => {
-  loadCategories()
-  loadGames()
+function ensureSelectedCategory() {
+  if (!visibleCategories.value.some((category) => category.Id === currentCategoryId.value)) {
+    currentCategoryId.value = visibleCategories.value[0]?.Id ?? ''
+  }
+}
+
+async function refreshLibrary(preserveScroll: boolean) {
+  const scrollTop = preserveScroll ? contentEl.value?.scrollTop ?? 0 : 0
+  await loadCategories()
+  ensureSelectedCategory()
+  await loadGames()
+  if (seriesView.value) {
+    seriesGames.value = games.value.filter((game) => game.Series.trim() === seriesView.value)
+  }
+  if (preserveScroll) {
+    await nextTick()
+    if (contentEl.value) contentEl.value.scrollTop = scrollTop
+  }
+}
+
+onMounted(async () => {
+  await loadCategories()
+  ensureSelectedCategory()
+  await loadGames()
 })
 </script>
 
@@ -493,6 +510,25 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
 }
 
+.toolbar-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+.btn-settings {
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: rgba(36, 51, 77, 0.72);
+}
+.btn-settings span {
+  color: var(--accent);
+  font-size: 16px;
+  transition: transform 0.35s ease;
+}
+.btn-settings:hover span {
+  transform: rotate(75deg);
+}
+
 .content {
   flex: 1;
   overflow-y: auto;
@@ -529,5 +565,18 @@ onMounted(() => {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    width: 150px;
+  }
+  .toolbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .content {
+    padding: 16px;
+  }
 }
 </style>

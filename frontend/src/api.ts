@@ -4,6 +4,7 @@ import type {
   EditGamePayload,
   GameDTO,
   SearchGameConditionDTO,
+  SettingsDTO,
 } from './types'
 
 const app = () => window.go.wails_support.App
@@ -34,6 +35,10 @@ export const api = {
   confirmAddMany: (path: string): Promise<void> => app().ConfirmAddMany(path),
 
   editGame: (payload: EditGamePayload): Promise<void> => app().EditGame(payload),
+
+  getSettings: (): Promise<SettingsDTO> => app().GetSettings(),
+
+  updateSettings: (settings: SettingsDTO): Promise<void> => app().UpdateSettings(settings),
 }
 
 export function formatTime(t: string): string {

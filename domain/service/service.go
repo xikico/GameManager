@@ -34,6 +34,7 @@ func NewGameManager(db db.DB, utils utils.Utils, unzip unzip.UnzipFunc) *GameMan
 
 // PredictGame 必须传入单个文件夹路径
 func (g *GameManager) PredictGame(game in.GameDTO) (in.GameDTO, error) {
+	normalizeGameDTOPaths(&game)
 	gamePath := game.Path
 	f, err := os.Open(gamePath)
 	if err != nil {
@@ -63,16 +64,18 @@ func (g *GameManager) PredictGame(game in.GameDTO) (in.GameDTO, error) {
 }
 
 func (g *GameManager) UnzipGame(path string, password string) (string, error) {
-	return g.unzip(path, password)
+	return g.unzip(domainUtils.NormalizePath(path), password)
 }
 
 func (g *GameManager) SaveGame(games []in.GameDTO) error {
 	if len(games) == 1 {
 		gameDTO := games[0]
+		normalizeGameDTOPaths(&gameDTO)
 		return g.db.SaveGame(*domainUtils.GameToDomain(gameDTO))
 	} else {
 		gameDTOs := make([]entity.Game, len(games))
 		for i, dto := range games {
+			normalizeGameDTOPaths(&dto)
 			gameDTOs[i] = *domainUtils.GameToDomain(dto)
 		}
 		return g.db.SaveGames(gameDTOs)
@@ -80,10 +83,12 @@ func (g *GameManager) SaveGame(games []in.GameDTO) error {
 }
 
 func (g *GameManager) OpenGame(game in.GameDTO) error {
+	normalizeGameDTOPaths(&game)
 	return g.utils.OpenGame(domainUtils.GameToDomain(game))
 }
 
 func (g *GameManager) DeleteGame(game in.GameDTO, delAll bool) error {
+	normalizeGameDTOPaths(&game)
 	oldGame, newGame := domainUtils.GameToDomain(game), domainUtils.GameToDomain(game)
 	newGame.IsDel = true
 	err := g.db.EditGame(*oldGame, *newGame)
@@ -101,7 +106,7 @@ func (g *GameManager) GetGameByCategory(category in.CategoryDTO) ([]in.GameDTO, 
 	if err != nil {
 		return nil, fmt.Errorf("数据库查询失败:%e", err)
 	}
-		gameDTOs := g.sortAndConvertToDTO(games)
+	gameDTOs := g.sortAndConvertToDTO(games)
 	return gameDTOs, nil
 }
 
@@ -122,7 +127,7 @@ func (g *GameManager) GetGameByCondition(condition in.SearchGameConditionDTO) ([
 	if err != nil {
 		return nil, fmt.Errorf("数据库查询失败:%e", err)
 	}
-		gameDTOs := g.sortAndConvertToDTO(games)
+	gameDTOs := g.sortAndConvertToDTO(games)
 	return gameDTOs, nil
 }
 
@@ -139,7 +144,33 @@ func (g *GameManager) GetAllCategory() ([]in.CategoryDTO, error) {
 }
 
 func (g *GameManager) EditGame(oldGame in.GameDTO, newGame in.GameDTO) error {
+	normalizeGameDTOPaths(&oldGame)
+	normalizeGameDTOPaths(&newGame)
 	return g.db.EditGame(*domainUtils.GameToDomain(oldGame), *domainUtils.GameToDomain(newGame))
+}
+
+func (g *GameManager) GetSettings() (in.SettingsDTO, error) {
+	settings, err := g.db.GetSettings()
+	if err != nil {
+		return in.SettingsDTO{}, fmt.Errorf("读取设置失败:%w", err)
+	}
+	g.utils.SetClipboardImageDetectionEnabled(settings.ClipboardImageDetectionEnabled)
+	return in.SettingsDTO{ClipboardImageDetectionEnabled: settings.ClipboardImageDetectionEnabled}, nil
+}
+
+func (g *GameManager) UpdateSettings(settings in.SettingsDTO) error {
+	domainSettings := entity.Settings{ClipboardImageDetectionEnabled: settings.ClipboardImageDetectionEnabled}
+	if err := g.db.SaveSettings(domainSettings); err != nil {
+		return fmt.Errorf("保存设置失败:%w", err)
+	}
+	g.utils.SetClipboardImageDetectionEnabled(settings.ClipboardImageDetectionEnabled)
+	return nil
+}
+
+func normalizeGameDTOPaths(game *in.GameDTO) {
+	game.IconPath = domainUtils.NormalizePath(game.IconPath)
+	game.Path = domainUtils.NormalizePath(game.Path)
+	game.StartPath = domainUtils.NormalizePath(game.StartPath)
 }
 
 // sortAndConvertToDTO 对游戏按插入时间降序排序并转换为DTO

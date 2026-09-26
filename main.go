@@ -31,6 +31,9 @@ func main() {
 	defer cancel()
 
 	gameManager := service.NewGameManager(db, utils, unzip.Unzip)
+	if _, err = gameManager.GetSettings(); err != nil {
+		log.Fatal("设置初始化失败", zap.Error(err))
+	}
 	go utils.Img2Base64(ctx)
 
 	app := wails_support.NewApp(gameManager)

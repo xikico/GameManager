@@ -62,7 +62,7 @@ func newSqliteDB() (*sqliteDB, error) {
 	sqlDB.SetConnMaxIdleTime(15 * time.Minute)
 
 	// 自动建表
-	if err := dbObj.AutoMigrate(&sqliteEntity.Category{}, &sqliteEntity.Game{}); err != nil {
+	if err := dbObj.AutoMigrate(&sqliteEntity.Category{}, &sqliteEntity.Game{}, &sqliteEntity.Settings{}); err != nil {
 		return nil, err
 	}
 
@@ -78,10 +78,35 @@ func newSqliteDB() (*sqliteDB, error) {
 			Num:  0,
 		})
 	}
+	var settings sqliteEntity.Settings
+	if err = dbObj.First(&settings, 1).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		if err = dbObj.Create(&sqliteEntity.Settings{
+			Id:                             1,
+			ClipboardImageDetectionEnabled: true,
+		}).Error; err != nil {
+			return nil, err
+		}
+	} else if err != nil {
+		return nil, err
+	}
 
 	return &sqliteDB{
 		db: dbObj,
 	}, nil
+}
+
+func (s *sqliteDB) GetSettings() (entity.Settings, error) {
+	var settings sqliteEntity.Settings
+	if err := s.db.First(&settings, 1).Error; err != nil {
+		return entity.Settings{}, err
+	}
+	return entity.Settings{ClipboardImageDetectionEnabled: settings.ClipboardImageDetectionEnabled}, nil
+}
+
+func (s *sqliteDB) SaveSettings(settings entity.Settings) error {
+	return s.db.Model(&sqliteEntity.Settings{}).
+		Where("id = ?", 1).
+		Update("clipboard_image_detection_enabled", settings.ClipboardImageDetectionEnabled).Error
 }
 
 func (s *sqliteDB) SaveGame(game entity.Game) error {

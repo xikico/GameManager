@@ -4,11 +4,11 @@ import (
 	"GameManager/adapters/in/gin_support/entity"
 	"GameManager/adapters/in/utils"
 	"GameManager/domain/ports/in"
+	domainUtils "GameManager/domain/utils"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,6 +31,7 @@ func (g *GinAPI) PredictGame(c *gin.Context) {
 		return
 	}
 	path, ok := (*payload)["path"].(string)
+	path = domainUtils.NormalizePath(path)
 	if !ok || path == "" {
 		c.JSON(200, utils.Failure("", "缺少或无效的 path 参数"))
 		return
@@ -226,8 +227,9 @@ func (g *GinAPI) EditGame(c *gin.Context) {
 		c.JSON(200, utils.Failure("", "获取表单失败"))
 		return
 	}
-	request.Path = strings.ReplaceAll(request.Path, "\"", "")
-	request.StartPath = strings.ReplaceAll(request.StartPath, "\"", "")
+	request.IconPath = domainUtils.NormalizePath(request.IconPath)
+	request.Path = domainUtils.NormalizePath(request.Path)
+	request.StartPath = domainUtils.NormalizePath(request.StartPath)
 	imgHeaders := form.File["imgs"]
 	var imgsData [][]byte
 	for _, header := range imgHeaders {
@@ -269,6 +271,7 @@ func OpenFolder(c *gin.Context) {
 		return
 	}
 	path, ok := (*payload)["path"].(string)
+	path = domainUtils.NormalizePath(path)
 	if !ok {
 		c.JSON(200, utils.Failure("", "缺少path参数"))
 		return
@@ -288,6 +291,7 @@ func getBody(c *gin.Context) *map[string]interface{} {
 }
 
 func procesIconPath(path string) string {
+	path = domainUtils.NormalizePath(path)
 	if _, err := os.Stat(path); err != nil {
 		return path
 	} else {

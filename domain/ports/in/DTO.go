@@ -41,3 +41,7 @@ type SearchGameConditionDTO struct {
 	IsPlay          *bool
 	CategoryDTO
 }
+
+type SettingsDTO struct {
+	ClipboardImageDetectionEnabled bool
+}

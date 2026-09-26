@@ -4,6 +4,7 @@ import type {
   EditGamePayload,
   GameDTO,
   SearchGameConditionDTO,
+  SettingsDTO,
 } from './types'
 
 declare global {
@@ -22,6 +23,8 @@ declare global {
           AddGame(path: string, password: string): Promise<AddGameResult>
           ConfirmAddMany(path: string): Promise<void>
           EditGame(payload: EditGamePayload): Promise<void>
+          GetSettings(): Promise<SettingsDTO>
+          UpdateSettings(settings: SettingsDTO): Promise<void>
         }
       }
     }
