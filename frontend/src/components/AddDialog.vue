@@ -85,7 +85,7 @@ function close() {
 <style scoped>
 .add-modal {
   width: 460px;
-  padding: 20px 24px;
+  padding: 23px 26px;
 }
 .modal-header {
   display: flex;
@@ -94,7 +94,9 @@ function close() {
   margin-bottom: 16px;
 }
 .modal-header h2 {
-  font-size: 18px;
+  font-family: 'Segoe UI Variable Display', 'Microsoft YaHei UI', sans-serif;
+  font-size: 20px;
+  font-weight: 720;
 }
 .field {
   margin-bottom: 14px;

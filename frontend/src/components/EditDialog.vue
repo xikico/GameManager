@@ -236,7 +236,7 @@ function close() {
 .edit-modal {
   width: 860px;
   max-width: 94vw;
-  padding: 20px 24px;
+  padding: 22px 26px;
 }
 .modal-header {
   display: flex;
@@ -245,12 +245,14 @@ function close() {
   margin-bottom: 16px;
 }
 .modal-header h2 {
-  font-size: 18px;
+  font-family: 'Segoe UI Variable Display', 'Microsoft YaHei UI', sans-serif;
+  font-size: 20px;
+  font-weight: 720;
 }
 
 .edit-body {
   display: flex;
-  gap: 20px;
+  gap: 24px;
 }
 .edit-form {
   flex: 1;
@@ -259,6 +261,10 @@ function close() {
 .edit-imgs {
   width: 280px;
   flex-shrink: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(4,12,23,.22);
 }
 
 .icon-row {
@@ -270,11 +276,12 @@ function close() {
 .icon-preview {
   width: 64px;
   height: 64px;
-  border-radius: 8px;
+  border-radius: 11px;
   object-fit: contain;
   padding: 3px;
   border: 1px solid var(--border);
-  background: var(--bg-soft);
+  background: rgba(7,16,28,.65);
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
   flex-shrink: 0;
 }
 .icon-empty {
@@ -313,7 +320,8 @@ function close() {
 
 .imgs-title {
   font-size: 13px;
-  color: var(--text-dim);
+  color: #9aacc3;
+  font-weight: 700;
   margin-bottom: 8px;
 }
 .img-grid {
@@ -324,9 +332,10 @@ function close() {
 .img-item {
   position: relative;
   aspect-ratio: 4 / 3;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--bg-soft);
+  background: rgba(7,16,28,.68);
+  border: 1px solid var(--border);
 }
 .img-item img {
   width: 100%;
@@ -350,7 +359,7 @@ function close() {
 .img-add {
   aspect-ratio: 4 / 3;
   border: 1px dashed var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -369,7 +378,7 @@ function close() {
   justify-content: space-between;
   align-items: center;
   margin-top: 18px;
-  padding-top: 14px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
 }
 .footer-left,

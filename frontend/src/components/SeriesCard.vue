@@ -1,5 +1,5 @@
 <template>
-  <div class="series-card" @click="open" @dblclick="open">
+  <article class="series-card">
     <div class="series-icon">
       <img v-if="iconSrc" :src="iconSrc" alt="" />
       <div v-else class="series-placeholder">系列</div>
@@ -17,10 +17,11 @@
         <div v-if="group.games.length > 5" class="thumb-more">+{{ group.games.length - 5 }}</div>
       </div>
       <div class="series-time" :title="`最新加入：${formatTime(latestTime)}`">
-        {{ formatTime(latestTime) }}
+        最近更新于 {{ formatTime(latestTime) }}
       </div>
     </div>
-  </div>
+    <button class="series-open" @click="open">查看系列 <span>→</span></button>
+  </article>
 </template>
 
 <script setup lang="ts">
@@ -84,25 +85,24 @@ function open() {
 
 <style scoped>
 .series-card {
-  background: var(--series-bg);
-  border: 1px solid rgba(41, 128, 185, 0.45);
-  border-left: 3px solid var(--series);
-  border-radius: 12px;
+  background: linear-gradient(150deg,rgba(19,55,80,.64),rgba(10,27,43,.92));
+  border: 1px solid rgba(78,158,210,.3);
+  border-radius: 15px;
   overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .25s, background .25s;
   display: flex;
   flex-direction: column;
   position: relative;
   height: 330px;
+  box-shadow: 0 12px 30px rgba(0,5,14,.2),inset 0 1px rgba(128,207,251,.035);
 }
 .series-card::after {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 12px;
-  padding: 2px;
-  background: linear-gradient(135deg, rgba(41, 128, 185, 0.5), transparent);
+  border-radius: 15px;
+  padding: 1px;
+  background: linear-gradient(135deg,rgba(105,195,245,.5),transparent 42%,rgba(41,128,185,.15));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -111,9 +111,10 @@ function open() {
   pointer-events: none;
 }
 .series-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 24px rgba(41, 128, 185, 0.2), 0 0 0 1px var(--series);
-  background: rgba(41, 128, 185, 0.26);
+  transform: translateY(-3px);
+  border-color: rgba(105,195,245,.48);
+  box-shadow: 0 22px 46px rgba(0,7,17,.34),0 0 0 1px rgba(68,158,216,.1);
+  background: linear-gradient(150deg,rgba(24,68,98,.7),rgba(11,31,49,.96));
 }
 .series-card:hover::after {
   opacity: 1;
@@ -122,12 +123,12 @@ function open() {
 .series-icon {
   position: relative;
   height: 140px;
-  background: linear-gradient(to bottom, rgba(41, 128, 185, 0.1), transparent);
+  background: radial-gradient(ellipse at center,rgba(70,162,219,.18),transparent 62%),linear-gradient(180deg,rgba(3,14,25,.25),transparent);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 6px;
+  padding: 10px;
   flex-shrink: 0;
 }
 .series-icon::before {
@@ -150,7 +151,7 @@ function open() {
   border-radius: 6px;
 }
 .series-card:hover .series-icon img {
-  transform: scale(1.08);
+  transform: scale(1.045);
   opacity: 1;
 }
 .series-placeholder {
@@ -158,7 +159,7 @@ function open() {
   font-weight: 800;
   color: var(--series);
   letter-spacing: 2px;
-  text-shadow: 0 0 15px rgba(41, 128, 185, 0.5);
+  text-shadow: 0 0 24px rgba(62,148,207,.38);
 }
 
 .series-badge {
@@ -168,16 +169,17 @@ function open() {
   font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
-  border-radius: 10px;
-  background: var(--series);
+  border-radius: 99px;
+  background: rgba(35,117,169,.88);
+  border: 1px solid rgba(153,220,255,.16);
   color: #fff;
   box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3);
   z-index: 2;
 }
 
 .series-body {
-  padding: 12px 14px;
-  background: linear-gradient(to top, rgba(41, 128, 185, 0.05), transparent);
+  padding: 13px 15px;
+  background: linear-gradient(180deg,transparent,rgba(3,15,26,.18));
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -185,7 +187,7 @@ function open() {
 .series-name {
   font-size: 15px;
   font-weight: 700;
-  color: #5fb3e8;
+  color: #82cdf6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -201,7 +203,7 @@ function open() {
 .thumb-wrapper {
   width: 24px;
   height: 24px;
-  border-radius: 4px;
+  border-radius: 6px;
   background: rgba(0,0,0,0.2);
   border: 1px solid rgba(41, 128, 185, 0.3);
   overflow: hidden;
@@ -240,9 +242,8 @@ function open() {
   gap: 6px;
   margin-top: auto;
 }
-.series-time::before {
-  content: '🕒';
-  font-size: 10px;
-  filter: hue-rotate(240deg);
-}
+.series-open { margin: 0 14px 14px; padding: 9px 11px; border-radius: 9px; background: linear-gradient(90deg,rgba(48,138,194,.2),rgba(48,138,194,.1)); color: #82cdf6; font-size: 12px; font-weight: 700; text-align: left; border: 1px solid rgba(82,174,229,.24); box-shadow: inset 0 1px rgba(255,255,255,.025); }
+.series-open span { float: right; transition: transform .2s; }
+.series-open:hover { background: rgba(41,128,185,.27); }
+.series-open:hover span { transform: translateX(3px); }
 </style>

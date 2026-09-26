@@ -16,7 +16,7 @@
       <div class="modal-footer">
         <button class="btn" @click="cancel">取消</button>
         <button class="btn btn-danger" :disabled="busy" @click="confirm">
-          {{ delAll ? '删除（含源文件）' : '确定' }}
+          {{ delAll ? '删除游戏及源文件' : '从游戏库移除' }}
         </button>
       </div>
     </div>
