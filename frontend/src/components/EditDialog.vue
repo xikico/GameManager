@@ -67,8 +67,27 @@
             </div>
             <label class="img-add">
               <input type="file" accept="image/*" multiple hidden @change="onPickImgs" />
-              <span>+ 添加图片</span>
+              <span>+ 选择图片</span>
             </label>
+            <button class="img-add" type="button" @click="showBase64Input = !showBase64Input">
+              &lt;/&gt; Base64
+            </button>
+          </div>
+          <div v-if="showBase64Input" class="base64-panel">
+            <label for="screenshot-base64">图片 Base64</label>
+            <textarea
+              id="screenshot-base64"
+              v-model="base64Input"
+              rows="4"
+              placeholder="粘贴 data:image/...;base64,... 或纯 Base64 内容"
+              @keydown.ctrl.enter="addBase64Img"
+            ></textarea>
+            <p v-if="base64Error" class="base64-error">{{ base64Error }}</p>
+            <div class="base64-actions">
+              <span>Ctrl + Enter 快速添加</span>
+              <button class="btn btn-small" type="button" @click="showBase64Input = false">取消</button>
+              <button class="btn btn-small btn-primary" type="button" @click="addBase64Img">添加截图</button>
+            </div>
           </div>
         </div>
       </div>
@@ -117,6 +136,9 @@ const newImgs = ref<string[]>([])
 const removedImgs = ref<string[]>([])
 const previewImg = ref('')
 const showDelete = ref(false)
+const showBase64Input = ref(false)
+const base64Input = ref('')
+const base64Error = ref('')
 
 const form = reactive({
   IconPath: props.game.IconPath,
@@ -162,6 +184,56 @@ function onPickImgs(e: Event) {
     reader.readAsDataURL(file)
   }
   ;(e.target as HTMLInputElement).value = ''
+}
+
+function addBase64Img() {
+  base64Error.value = ''
+  try {
+    const image = normalizeBase64Image(base64Input.value)
+    if (!displayImgs.value.includes(image)) newImgs.value.push(image)
+    base64Input.value = ''
+    showBase64Input.value = false
+  } catch (err: unknown) {
+    base64Error.value = err instanceof Error ? err.message : 'Base64 图片格式无效'
+  }
+}
+
+function normalizeBase64Image(value: string): string {
+  const input = value.trim()
+  if (!input) throw new Error('请粘贴图片 Base64 内容')
+
+  const dataUrl = input.match(/^data:(image\/[\w.+-]+);base64,([\s\S]+)$/i)
+  const mime = dataUrl?.[1].toLowerCase()
+  const payload = (dataUrl?.[2] ?? input).replace(/\s/g, '')
+  if (!payload || !/^[A-Za-z0-9+/]*={0,2}$/.test(payload)) {
+    throw new Error('Base64 内容包含无效字符')
+  }
+
+  let binary: string
+  try {
+    binary = atob(payload)
+  } catch {
+    throw new Error('无法解析 Base64 内容')
+  }
+  if (!binary) throw new Error('Base64 图片内容为空')
+
+  const detectedMime = detectImageMime(binary)
+  if (!mime && !detectedMime) {
+    throw new Error('无法识别图片格式，请使用 PNG、JPEG、GIF、WebP、BMP 或 ICO')
+  }
+  return `data:${mime ?? detectedMime};base64,${payload}`
+}
+
+function detectImageMime(binary: string): string | null {
+  const byte = (index: number) => binary.charCodeAt(index)
+  const text = (start: number, end: number) => binary.slice(start, end)
+  if (byte(0) === 0x89 && text(1, 4) === 'PNG') return 'image/png'
+  if (byte(0) === 0xff && byte(1) === 0xd8 && byte(2) === 0xff) return 'image/jpeg'
+  if (text(0, 4) === 'GIF8') return 'image/gif'
+  if (text(0, 4) === 'RIFF' && text(8, 12) === 'WEBP') return 'image/webp'
+  if (text(0, 2) === 'BM') return 'image/bmp'
+  if (byte(0) === 0 && byte(1) === 0 && byte(2) === 1 && byte(3) === 0) return 'image/x-icon'
+  return null
 }
 
 function removeImg(img: string) {
@@ -367,10 +439,58 @@ function close() {
   color: var(--text-dim);
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
+  background: transparent;
+  font-family: inherit;
 }
 .img-add:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+.base64-panel {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(3, 11, 21, .38);
+}
+.base64-panel > label {
+  display: block;
+  margin-bottom: 6px;
+  color: #9aacc3;
+  font-size: 11px;
+  font-weight: 700;
+}
+.base64-panel textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 9px 10px;
+  resize: vertical;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  word-break: break-all;
+}
+.base64-error {
+  margin-top: 7px;
+  color: var(--danger);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.base64-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 9px;
+}
+.base64-actions > span {
+  margin-right: auto;
+  color: #617794;
+  font-size: 9px;
+}
+.base64-actions .btn-small {
+  padding: 6px 9px;
+  font-size: 11px;
 }
 
 .modal-footer {
