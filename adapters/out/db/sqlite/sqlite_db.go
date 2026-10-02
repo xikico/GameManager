@@ -6,35 +6,47 @@ import (
 	"GameManager/domain/entity"
 	"GameManager/domain/ports/out/db"
 	"errors"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/glebarez/sqlite"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-var once = sync.Once{}
-var dbInstance *sqliteDB
+var (
+	once       sync.Once
+	dbInstance *sqliteDB
+	dbInitErr  error
+)
 
 func GetDB() (db.DB, error) {
-	var err error
-	if dbInstance == nil {
-		once.Do(func() {
-			dbInstance, err = newSqliteDB()
-		})
-	}
-	return dbInstance, err
+	once.Do(func() {
+		dbInstance, dbInitErr = newSqliteDB()
+	})
+	return dbInstance, dbInitErr
 }
 
 type sqliteDB struct {
-	db          *gorm.DB
-	allCategory []sqliteEntity.Category // 缓存，减少查询次数
+	db *gorm.DB
+}
+
+func (s *sqliteDB) close() error {
+	sqlDB, err := s.db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
 }
 
 func newSqliteDB() (*sqliteDB, error) {
-	dsn := "file:./game_manager.db?_journal_mode=WAL&_busy_timeout=5000"
+	return openSqliteDB("file:./game_manager.db?_journal_mode=WAL&_busy_timeout=5000")
+}
 
+func openSqliteDB(dsn string) (*sqliteDB, error) {
 	// 连接 SQLite（纯 Go 驱动）
 	dbObj, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		// 日志级别建议：开发用 Info，生产用 logger.Error 或 logger.Silent
@@ -56,8 +68,8 @@ func newSqliteDB() (*sqliteDB, error) {
 	}
 
 	// SQLite 连接池参数（防止极端情况下连接耗尽）
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(64) // SQLite 并发有限，建议不要太大
+	sqlDB.SetMaxIdleConns(1)
+	sqlDB.SetMaxOpenConns(1)
 	sqlDB.SetConnMaxLifetime(30 * time.Minute)
 	sqlDB.SetConnMaxIdleTime(15 * time.Minute)
 
@@ -72,11 +84,13 @@ func newSqliteDB() (*sqliteDB, error) {
 		return nil, err
 	}
 	if category.Name == "" {
-		dbObj.Create(&sqliteEntity.Category{
+		if err := dbObj.Create(&sqliteEntity.Category{
 			Id:   "000000",
 			Name: "未分类",
 			Num:  0,
-		})
+		}).Error; err != nil {
+			return nil, err
+		}
 	}
 	var settings sqliteEntity.Settings
 	if err = dbObj.First(&settings, 1).Error; errors.Is(err, gorm.ErrRecordNotFound) {
@@ -104,72 +118,56 @@ func (s *sqliteDB) GetSettings() (entity.Settings, error) {
 }
 
 func (s *sqliteDB) SaveSettings(settings entity.Settings) error {
-	return s.db.Model(&sqliteEntity.Settings{}).
+	result := s.db.Model(&sqliteEntity.Settings{}).
 		Where("id = ?", 1).
-		Update("clipboard_image_detection_enabled", settings.ClipboardImageDetectionEnabled).Error
+		Update("clipboard_image_detection_enabled", settings.ClipboardImageDetectionEnabled)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("设置记录不存在")
+	}
+	return nil
 }
 
 func (s *sqliteDB) SaveGame(game entity.Game) error {
-	db := s.db.Begin()
-	categoryId := ""
-	for _, category := range s.allCategory {
-		if game.Category.Name == category.Name {
-			categoryId = category.Id
-			break
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		category, err := resolveCategory(tx, game.Category)
+		if err != nil {
+			return err
 		}
-	}
-	dbGame := toDBGame(game)
-	if dbGame.CategoryId != "" {
-		if categoryId == "" {
-			addCategory(db, toDBCategory(game.Category))
-		} else {
-			addCategoryNum(db, sqliteEntity.Category{Id: categoryId}, 1)
+		dbGame := toDBGame(game)
+		dbGame.CategoryId = category.Id
+		if err := tx.Create(&dbGame).Error; err != nil {
+			return err
 		}
-	} else {
-		dbGame.CategoryId = "000000"
-		addCategoryNum(db, sqliteEntity.Category{Id: dbGame.CategoryId}, 1)
-	}
-
-	// 这里就是意思一下，其实以上任何一步出错都应该回滚
-	err := db.Create(&dbGame).Error
-	if err != nil {
-		db.Rollback()
-	} else {
-		db.Commit()
-	}
-	return err
+		return changeCategoryCount(tx, category.Id, 1)
+	})
 }
 
 func (s *sqliteDB) SaveGames(games []entity.Game) error {
-	db := s.db.Begin()
-	currCategory := sqliteEntity.Category{}
-	for _, category := range s.allCategory {
-		if games[0].Category.Name == category.Name {
-			currCategory = category
-			break
+	if len(games) == 0 {
+		return errors.New("批量保存的游戏不能为空")
+	}
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		category, err := resolveCategory(tx, games[0].Category)
+		if err != nil {
+			return err
 		}
-	}
-	var newCategoryId string
-	if currCategory.Id == "" {
-		newCategoryId, _ = addCategory(db, sqliteEntity.Category{Name: games[0].Category.Name, Num: len(games)})
-	} else {
-		newCategoryId = currCategory.Id
-		addCategoryNum(db, currCategory, len(games))
-	}
-	dbGames := make([]sqliteEntity.Game, 0, len(games))
-
-	for _, g := range games {
-		g.Category.Id = newCategoryId
-		dbGames = append(dbGames, toDBGame(g))
-	}
-
-	err := db.Create(&dbGames).Error
-	if err != nil {
-		db.Rollback()
-	} else {
-		db.Commit()
-	}
-	return err
+		dbGames := make([]sqliteEntity.Game, 0, len(games))
+		for _, game := range games {
+			if game.Category.Name != "" && !strings.EqualFold(game.Category.Name, games[0].Category.Name) {
+				return errors.New("批量保存的游戏必须属于同一分类")
+			}
+			dbGame := toDBGame(game)
+			dbGame.CategoryId = category.Id
+			dbGames = append(dbGames, dbGame)
+		}
+		if err := tx.Create(&dbGames).Error; err != nil {
+			return err
+		}
+		return changeCategoryCount(tx, category.Id, len(dbGames))
+	})
 }
 
 func (s *sqliteDB) GetGameByCategory(category entity.Category) ([]entity.Game, error) {
@@ -307,61 +305,106 @@ func (s *sqliteDB) GetAllCategory() ([]entity.Category, error) {
 			Num:  c.Num,
 		})
 	}
-	s.allCategory = categories
-
 	return result, nil
 }
 
 func (s *sqliteDB) EditGame(oldGame entity.Game, newGame entity.Game) error {
-	db := s.db.Begin()
-	oldCategoryId := oldGame.Category.Id
-	db.Model(&sqliteEntity.Game{}).Where("id = ?", oldGame.Id).Pluck("category", &oldCategoryId)
-	update := map[string]interface{}{
-		"icon_path":   newGame.IconPath,
-		"name":        newGame.Name,
-		"nick_name":   newGame.NickName,
-		"series":      newGame.Series,
-		"description": newGame.Description,
-		"path":        newGame.Path,
-		"start_path":  newGame.StartPath,
-		"category":    newGame.Category.Id,
-		"is_play":     newGame.IsPlay,
-		"is_del":      newGame.IsDel,
-	}
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		var persisted sqliteEntity.Game
+		if err := tx.Select("id", "category", "is_del").Where("id = ?", oldGame.Id).First(&persisted).Error; err != nil {
+			return err
+		}
 
-	// imgs 为完整最终列表：nil 表示不修改，空列表表示清空全部截图
-	if newGame.Imgs != nil {
-		update["imgs"] = string(utils.Pack(newGame.Imgs...))
-	}
+		categoryId := persisted.CategoryId
+		if !newGame.IsDel || newGame.Category.Id != "" || newGame.Category.Name != "" {
+			category, err := resolveCategory(tx, newGame.Category)
+			if err != nil {
+				return err
+			}
+			categoryId = category.Id
+		}
 
-	if newGame.IsDel {
-		subCategoryNum(db, sqliteEntity.Category{Id: newGame.Category.Id}, 1)
-	} else if oldCategoryId != "" && oldCategoryId != newGame.Category.Id {
-		subCategoryNum(db, sqliteEntity.Category{Id: oldCategoryId}, 1)
-		addCategoryNum(db, sqliteEntity.Category{Id: newGame.Category.Id}, 1)
-	}
+		if err := applyCategoryTransition(tx, persisted.CategoryId, categoryId, persisted.IsDel, newGame.IsDel); err != nil {
+			return err
+		}
 
-	err := db.Model(&sqliteEntity.Game{}).
-		Where("id = ?", oldGame.Id).
-		Updates(update).Error
-	if err != nil {
-		db.Rollback()
-	} else {
-		db.Commit()
-	}
-	return err
+		update := map[string]interface{}{
+			"icon_path": newGame.IconPath, "name": newGame.Name, "nick_name": newGame.NickName,
+			"series": newGame.Series, "description": newGame.Description, "path": newGame.Path,
+			"start_path": newGame.StartPath, "category": categoryId, "is_play": newGame.IsPlay, "is_del": newGame.IsDel,
+		}
+		if newGame.Imgs != nil {
+			update["imgs"] = string(utils.Pack(newGame.Imgs...))
+		}
+		result := tx.Model(&sqliteEntity.Game{}).Where("id = ?", oldGame.Id).Updates(update)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		return nil
+	})
 }
 
-func addCategory(db *gorm.DB, category sqliteEntity.Category) (string, error) {
-	err := db.Create(&category).Error
-	return category.Id, err
+func newCategoryId() string {
+	return strings.ReplaceAll(uuid.NewString(), "-", "")
 }
 
-func addCategoryNum(db *gorm.DB, category sqliteEntity.Category, num int) error {
-	return db.Model(&category).Where("id = ?", category.Id).Update("num", gorm.Expr("num + ?", num)).Error
+func resolveCategory(tx *gorm.DB, category entity.Category) (sqliteEntity.Category, error) {
+	var result sqliteEntity.Category
+	if category.Id != "" {
+		if err := tx.Where("id = ?", category.Id).First(&result).Error; err == nil {
+			return result, nil
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return result, err
+		}
+	}
+	name := strings.TrimSpace(category.Name)
+	if name == "" {
+		if err := tx.Where("id = ?", "000000").First(&result).Error; err != nil {
+			return result, err
+		}
+		return result, nil
+	}
+	if err := tx.Where("name = ?", name).First(&result).Error; err == nil {
+		return result, nil
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return result, err
+	}
+	result = sqliteEntity.Category{Id: newCategoryId(), Name: name, Num: 0}
+	if err := tx.Table(result.TableName()).Create(map[string]interface{}{"id": result.Id, "name": result.Name, "num": 0}).Error; err != nil {
+		return result, err
+	}
+	return result, nil
 }
-func subCategoryNum(db *gorm.DB, category sqliteEntity.Category, num int) error {
-	return db.Model(&category).Where("id = ?", category.Id).Update("num", gorm.Expr("num - ?", num)).Error
+
+func applyCategoryTransition(tx *gorm.DB, oldId, newId string, wasDeleted, isDeleted bool) error {
+	switch {
+	case !wasDeleted && isDeleted:
+		return changeCategoryCount(tx, oldId, -1)
+	case wasDeleted && !isDeleted:
+		return changeCategoryCount(tx, newId, 1)
+	case !wasDeleted && !isDeleted && oldId != newId:
+		if err := changeCategoryCount(tx, oldId, -1); err != nil {
+			return err
+		}
+		return changeCategoryCount(tx, newId, 1)
+	default:
+		return nil
+	}
+}
+
+func changeCategoryCount(tx *gorm.DB, id string, delta int) error {
+	result := tx.Model(&sqliteEntity.Category{}).Where("id = ?", id).
+		Update("num", gorm.Expr("MAX(num + ?, 0)", delta))
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("分类不存在: %s", id)
+	}
+	return nil
 }
 
 type gameWithCategory struct {

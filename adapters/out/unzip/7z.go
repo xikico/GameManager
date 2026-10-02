@@ -1,7 +1,9 @@
 package unzip
 
 import (
+	port "GameManager/domain/ports/out/unzip"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -19,7 +21,7 @@ func Unzip(path string, password string) (string, error) {
 	}
 
 	if _, err := os.Stat(path); err != nil {
-		return "", fmt.Errorf("文件路径出错：%e", err)
+		return "", fmt.Errorf("文件路径出错: %w", err)
 	}
 
 	// 2. 计算输出目录 = 输入文件的所在目录
@@ -51,8 +53,9 @@ func Unzip(path string, password string) (string, error) {
 	// 5. 错误处理
 	if err != nil {
 		// 常见密码错误
-		if err.Error() == "exit status 2" {
-			return "", fmt.Errorf("密码错误或需要密码但未提供")
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == 2 {
+			return "", port.ErrPassword
 		}
 		return "", fmt.Errorf("7z 执行失败: %v\n输出: %s", err, output)
 	}

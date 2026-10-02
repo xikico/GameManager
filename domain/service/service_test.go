@@ -2,89 +2,100 @@ package service
 
 import (
 	"GameManager/adapters/out/db/fake"
-	"GameManager/adapters/out/db/sqlite"
-	unzip2 "GameManager/adapters/out/unzip"
-	"GameManager/adapters/out/utils"
+	"GameManager/domain/entity"
 	"GameManager/domain/ports/in"
+	"GameManager/domain/ports/out/filesystem"
+	"errors"
 	"testing"
-	"time"
 )
 
-func createFakeGameManager() *GameManager {
-	db := fake.GetDB()
-	utils := utils.GetUtils() // 这是真的
-	unzip := unzip2.Unzip     // 真的
-
-	return NewGameManager(db, utils, unzip)
+type gameOperatorStub struct {
+	opened  *entity.Game
+	deleted *entity.Game
 }
 
-func createGameManager() *GameManager {
-	db, _ := sqlite.GetDB()
-	utils := utils.GetUtils() // 这是真的
-	unzip := unzip2.Unzip     // 真的
-
-	return NewGameManager(db, utils, unzip)
+func (s *gameOperatorStub) OpenGame(game *entity.Game) error {
+	s.opened = game
+	return nil
 }
 
-func TestGameManager_PredictGame(t *testing.T) {
-	gameManager := createFakeGameManager()
-	game := in.GameDTO{
-		Path: "G:\\Game\\slg\\BareBackReincarnation_Demo",
-	}
-	game, err := gameManager.PredictGame(game)
-	if err != nil {
-		t.Errorf("%e", err)
-		return
-	}
-	t.Logf("%+v", game)
+func (s *gameOperatorStub) DeleteGame(game *entity.Game) error {
+	s.deleted = game
+	return nil
 }
 
-func TestGetGame(t *testing.T) {
-	gameManager := createGameManager()
-	games, err := gameManager.GetGameByCategory(in.CategoryDTO{
-		Id:   "",
-		Name: "galgame",
-		Num:  0,
-	})
-	if err != nil {
-		t.Errorf("按分类查询出错:%e", err)
-		return
-	}
-	t.Logf("按分类查询：%+v", games)
+func (s *gameOperatorStub) OpenFolder(path string) error { return nil }
 
-	games, err = gameManager.GetGameByCondition(in.SearchGameConditionDTO{
-		Name:          "魔女",
-		InsertTimeEnd: time.Now(),
-	})
-	if err != nil {
-		t.Errorf("按条件查询出错:%e", err)
-		return
-	}
-	t.Logf("按条件查询：%+v", games)
+type clipboardSettingsStub struct{ enabled bool }
+
+func (s *clipboardSettingsStub) SetClipboardImageDetectionEnabled(enabled bool) { s.enabled = enabled }
+
+type inspectorStub struct {
+	snapshots map[string]filesystem.Snapshot
 }
 
-func TestOpenGame(t *testing.T) {
-	gameManager := createFakeGameManager()
-	game := in.GameDTO{
-		Path:       "E:\\utils",
-		StartPath:  "E:\\utils\\witr.exe",
-		Category:   in.CategoryDTO{},
-		IsDel:      false,
-		InsertTime: time.Now(),
+func (s inspectorStub) Inspect(path string) (filesystem.Snapshot, error) {
+	snapshot, ok := s.snapshots[path]
+	if !ok {
+		return filesystem.Snapshot{}, errors.New("path not found")
 	}
-	err := gameManager.OpenGame(game)
+	return snapshot, nil
+}
+
+func testManager(inspector filesystem.Inspector) (*GameManager, *gameOperatorStub) {
+	games := &gameOperatorStub{}
+	clipboard := &clipboardSettingsStub{}
+	unzip := func(path, password string) (string, error) { return "", errors.New("unexpected unzip") }
+	return NewGameManager(fake.GetDB(), games, games, clipboard, unzip, inspector), games
+}
+
+func TestPredictGameUsesDirectorySnapshot(t *testing.T) {
+	manager, _ := testManager(inspectorStub{snapshots: map[string]filesystem.Snapshot{
+		`C:\Games\Demo`: {
+			Path: `C:\Games\Demo`, Base: "Demo", IsDir: true,
+			Entries: []filesystem.Entry{{Name: "Demo.exe"}, {Name: "readme.txt"}},
+		},
+	}})
+
+	game, err := manager.PredictGame(in.GameDTO{Path: ` "C:\Games\Demo" `})
 	if err != nil {
-		t.Errorf("打开游戏出错：%e", err)
-		return
+		t.Fatalf("PredictGame: %v", err)
+	}
+	if game.Name != "Demo" || game.StartPath != `C:\Games\Demo\Demo.exe` {
+		t.Fatalf("unexpected prediction: %#v", game)
 	}
 }
 
-func TestUnzip(t *testing.T) {
-	gameManager := createFakeGameManager()
-	s, err := gameManager.UnzipGame("E:\\utils\\testzip\\test.zip", "123")
+func TestImportGameDetectsBatch(t *testing.T) {
+	manager, _ := testManager(inspectorStub{snapshots: map[string]filesystem.Snapshot{
+		`C:\Collection`: {
+			Path: `C:\Collection`, Base: "Collection", IsDir: true,
+			Entries: []filesystem.Entry{{Name: "One", IsDir: true}, {Name: "Two", IsDir: true}},
+		},
+	}})
+
+	result, err := manager.ImportGame(`C:\Collection`, "")
 	if err != nil {
-		t.Errorf("解压出错：%e", err)
-		return
+		t.Fatalf("ImportGame: %v", err)
 	}
-	t.Logf("解压成功:%s", s)
+	if !result.IsMany {
+		t.Fatalf("expected batch result: %#v", result)
+	}
+}
+
+func TestOpenGameNormalizesPaths(t *testing.T) {
+	manager, games := testManager(inspectorStub{})
+	if err := manager.OpenGame(in.GameDTO{Path: ` "C:\Game" `, StartPath: ` "C:\Game\game.exe" `}); err != nil {
+		t.Fatalf("OpenGame: %v", err)
+	}
+	if games.opened.Path != `C:\Game` || games.opened.StartPath != `C:\Game\game.exe` {
+		t.Fatalf("paths were not normalized: %#v", games.opened)
+	}
+}
+
+func TestSaveGameRejectsEmptyInput(t *testing.T) {
+	manager, _ := testManager(inspectorStub{})
+	if err := manager.SaveGame(nil); err == nil {
+		t.Fatal("expected empty input error")
+	}
 }

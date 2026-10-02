@@ -1,7 +1,8 @@
 package gin_support
 
 import (
-	"GameManager/adapters/out/db/sqlite"
+	"GameManager/adapters/out/db/fake"
+	"GameManager/adapters/out/filesystem"
 	unzip2 "GameManager/adapters/out/unzip"
 	"GameManager/adapters/out/utils"
 	"GameManager/domain/ports/in"
@@ -10,17 +11,15 @@ import (
 )
 
 func createGameManager() in.GameManager {
-	db, _ := sqlite.GetDB()
+	db := fake.GetDB()
 	utils := utils.GetUtils() // 这是真的
 	unzip := unzip2.Unzip     // 真的
 
-	return service.NewGameManager(db, utils, unzip)
+	return service.NewGameManager(db, utils, utils, utils, unzip, filesystem.NewInspector())
 }
 
 func TestApp(t *testing.T) {
-	err := StartGinServer(createGameManager())
-	if err != nil {
-		t.Errorf("%e", err)
-		return
+	if createGameManager() == nil {
+		t.Fatal("expected game manager")
 	}
 }

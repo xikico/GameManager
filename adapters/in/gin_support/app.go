@@ -21,7 +21,7 @@ func initAPI(app *gin.Engine, manager in.GameManager) {
 	game.POST("/open_game", ginAPI.OpenGame)
 	game.POST("/get_game_by_condition", ginAPI.GetGameByCondition)
 	game.POST("/edit_game", ginAPI.EditGame)
-	game.POST("/open_folder", api.OpenFolder)
+	game.POST("/open_folder", ginAPI.OpenFolder)
 }
 
 func StartGinServer(manager in.GameManager) error {

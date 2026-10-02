@@ -80,7 +80,7 @@ input,
 select,
 textarea {
   font-family: inherit;
-  background: rgba(7, 14, 25, 0.58);
+  background-color: rgba(7, 14, 25, 0.58);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 10px;
@@ -89,12 +89,49 @@ textarea {
   transition: border-color .2s, box-shadow .2s, background .2s;
   font-size: 14px;
 }
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 38px;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #8295b1 50%),
+    linear-gradient(135deg, #8295b1 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+select:hover {
+  background-color: rgba(14, 28, 46, 0.82);
+  border-color: var(--border-strong);
+}
+
+select option {
+  background: #122238;
+  color: var(--text);
+}
+
+select option:checked,
+select option:hover {
+  background: #1c4161;
+  color: #fff;
+}
 input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--accent);
-  background: rgba(9, 18, 31, 0.85);
+  background-color: rgba(9, 18, 31, 0.85);
   box-shadow: 0 0 0 3px rgba(76, 168, 232, 0.11), inset 0 1px rgba(255,255,255,.025);
+}
+
+select:focus {
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--accent) 50%),
+    linear-gradient(135deg, var(--accent) 50%, transparent 50%);
 }
 
 .btn {

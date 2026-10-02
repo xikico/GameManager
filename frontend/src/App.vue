@@ -162,7 +162,6 @@ const loading = ref(false)
 
 const currentCategoryId = ref('')
 const seriesView = ref('')
-const seriesGames = ref<GameDTO[]>([])
 
 const keyword = ref('')
 const seriesKeyword = ref('')
@@ -179,8 +178,6 @@ const showAdd = ref(false)
 const showSettings = ref(false)
 const editing = ref<GameDTO | null>(null)
 const contentEl = ref<HTMLElement | null>(null)
-
-const allGamesInSeries = new Map<string, GameDTO[]>()
 
 const visibleCategories = computed(() =>
   categories.value.filter((c) => c.Num > 0),
@@ -210,10 +207,8 @@ const seriesCards = computed<SeriesGroup[]>(() => {
       normals.push(g)
     }
   }
-  allGamesInSeries.clear()
   const cards: SeriesGroup[] = []
   for (const [name, gs] of map) {
-    allGamesInSeries.set(name, gs)
     cards.push({
       name,
       games: gs,
@@ -224,6 +219,10 @@ const seriesCards = computed<SeriesGroup[]>(() => {
   }
   return cards
 })
+
+const seriesGames = computed(() =>
+  seriesView.value ? games.value.filter((game) => game.Series.trim() === seriesView.value) : [],
+)
 
 const normalGames = computed<GameDTO[]>(() =>
   games.value.filter((g) => !(g.Series || '').trim()),
@@ -309,15 +308,11 @@ function showToast(message: string) {
 }
 
 function openSeries(name: string) {
-  const gs = allGamesInSeries.get(name)
-  if (!gs) return
   seriesView.value = name
-  seriesGames.value = gs
 }
 
 function backToList() {
   seriesView.value = ''
-  seriesGames.value = []
 }
 
 function openEdit(game: GameDTO) {
@@ -343,9 +338,6 @@ async function refreshLibrary(preserveScroll: boolean) {
   await loadCategories()
   ensureSelectedCategory()
   await loadGames()
-  if (seriesView.value) {
-    seriesGames.value = games.value.filter((game) => game.Series.trim() === seriesView.value)
-  }
   if (preserveScroll) {
     await nextTick()
     if (contentEl.value) contentEl.value.scrollTop = scrollTop
@@ -407,7 +399,7 @@ function onGlobalKeydown(event: KeyboardEvent) {
 .search-box { width: min(360px,38vw); position: relative; display: flex; align-items: center; }
 .search-box svg { position: absolute; left: 12px; width: 17px; fill: none; stroke: #7185a7; stroke-width: 1.8; pointer-events: none; }
 .search-box input { width: 100%; padding-left: 38px; background: rgba(4,12,23,.46); box-shadow: inset 0 1px 7px rgba(0,5,14,.16); }
-.filter-select { width: 116px; background: rgba(4,12,23,.46); }
+.filter-select { width: 116px; background-color: rgba(4,12,23,.46); }
 .btn-filter,.btn-search { padding: 9px 14px; }
 .btn-filter { border: 1px solid var(--border); background: transparent; }
 .btn-filter.active { color: var(--accent); border-color: rgba(52,152,219,.5); background: rgba(52,152,219,.08); }

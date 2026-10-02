@@ -4,6 +4,7 @@ import (
 	utils2 "GameManager/adapters/in/utils"
 	"GameManager/adapters/in/wails_support"
 	"GameManager/adapters/out/db/sqlite"
+	"GameManager/adapters/out/filesystem"
 	"GameManager/adapters/out/unzip"
 	"GameManager/adapters/out/utils"
 	"GameManager/domain/service"
@@ -30,8 +31,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	gameManager := service.NewGameManager(db, utils, unzip.Unzip)
-	if _, err = gameManager.GetSettings(); err != nil {
+	gameManager := service.NewGameManager(db, utils, utils, utils, unzip.Unzip, filesystem.NewInspector())
+	if err = gameManager.InitializeSettings(); err != nil {
 		log.Fatal("设置初始化失败", zap.Error(err))
 	}
 	go utils.Img2Base64(ctx)

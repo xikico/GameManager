@@ -2,7 +2,6 @@ package utils
 
 import (
 	"GameManager/domain/entity"
-	"GameManager/domain/ports/out/utils"
 	"bytes"
 	"context"
 	"encoding/base64"
@@ -12,6 +11,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
@@ -24,7 +24,7 @@ type Utils struct {
 	clipboardImageDetectionEnabled atomic.Bool
 }
 
-func GetUtils() utils.Utils {
+func GetUtils() *Utils {
 	u := &Utils{}
 	u.clipboardImageDetectionEnabled.Store(true)
 	return u
@@ -50,6 +50,10 @@ func (u *Utils) DeleteGame(game *entity.Game) error {
 	return os.RemoveAll(game.Path)
 }
 
+func (u *Utils) OpenFolder(path string) error {
+	return exec.Command("explorer", path).Start()
+}
+
 func (u *Utils) Img2Base64(ctx context.Context) {
 	// 1. 初始化剪贴板
 	err := clipboard.Init()
@@ -71,20 +75,23 @@ func (u *Utils) Img2Base64(ctx context.Context) {
 			if imgData == nil {
 				continue
 			}
-			var compressed []byte = nil
+			mime := "image/png"
+			var compressed []byte
 			if len(imgData) > 100*1024 {
 				img, decodeErr := png.Decode(bytes.NewReader(imgData))
 				if decodeErr == nil {
 					buf := bytes.NewBuffer(nil)
-					jpeg.Encode(buf, img, &jpeg.Options{Quality: 60})
-					compressed = buf.Bytes()
+					if encodeErr := jpeg.Encode(buf, img, &jpeg.Options{Quality: 60}); encodeErr == nil {
+						compressed = buf.Bytes()
+						mime = "image/jpeg"
+					}
 				}
 			}
 			if compressed != nil {
 				imgData = compressed
 			}
 			base64Str := base64.StdEncoding.EncodeToString(imgData)
-			dataURL := fmt.Sprintf("data:image/jpeg;base64,%s", base64Str)
+			dataURL := fmt.Sprintf("data:%s;base64,%s", mime, base64Str)
 			// 写入剪贴板
 			clipboard.Write(clipboard.FmtText, []byte(dataURL))
 		case <-ctx.Done():

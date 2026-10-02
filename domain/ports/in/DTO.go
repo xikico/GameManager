@@ -45,3 +45,9 @@ type SearchGameConditionDTO struct {
 type SettingsDTO struct {
 	ClipboardImageDetectionEnabled bool
 }
+
+type ImportGameResult struct {
+	IsMany   bool
+	NeedPass bool
+	Message  string
+}

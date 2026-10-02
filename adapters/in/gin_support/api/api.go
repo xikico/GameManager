@@ -7,8 +7,6 @@ import (
 	domainUtils "GameManager/domain/utils"
 	"io"
 	"os"
-	"os/exec"
-	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,81 +34,22 @@ func (g *GinAPI) PredictGame(c *gin.Context) {
 		c.JSON(200, utils.Failure("", "缺少或无效的 path 参数"))
 		return
 	}
-	isMany, ok := (*payload)["is_many"].(bool)
-	password, passOk := (*payload)["password"].(string)
-	if !ok {
-		pathType, err := utils.AnalysisPath(path)
-		if err != nil {
+	isMany, confirmed := (*payload)["is_many"].(bool)
+	if confirmed && isMany {
+		if err := g.inPort.ConfirmImportMany(path); err != nil {
 			c.JSON(200, utils.Failure("", err.Error()))
 			return
 		}
-		switch pathType {
-		case utils.SingleGameFolder:
-			err = g.processSingleGame(path)
-			if err != nil {
-				c.JSON(200, utils.Failure("", err.Error()))
-				return
-			}
-		case utils.ManyGameFolder:
-			c.JSON(200, utils.Success(map[string]bool{"is_many": true, "need_pass": false}, "是否将其作为一个分类进行批量添加"))
-			return
-		case utils.ZipFile:
-			var pass string
-			if passOk {
-				pass = password
-			}
-			game, err := g.inPort.UnzipGame(path, pass)
-			if err != nil {
-				if err.Error() == "密码错误或需要密码但未提供" {
-					c.JSON(200, utils.Success(map[string]bool{"is_many": false, "need_pass": true}, "需要密码或密码错误"))
-					return
-				}
-				c.JSON(200, utils.Failure("", err.Error()))
-				return
-			}
-			err = g.processSingleGame(game)
-			if err != nil {
-				c.JSON(200, utils.Failure("", err.Error()))
-				return
-			}
-		}
-
-	} else if isMany {
-		games := make([]in.GameDTO, 0, 1)
-		f, err := os.Open(path)
-		if err != nil {
-			c.JSON(200, utils.Failure("", "打不开文件夹："+err.Error()))
-			return
-		}
-		defer f.Close()
-
-		entries, _ := f.ReadDir(-1) // -1 表示读取全部
-		for _, entry := range entries {
-			game := in.GameDTO{
-				Path: filepath.Join(path, entry.Name()),
-				Category: in.CategoryDTO{
-					Name: filepath.Base(path),
-				},
-			}
-			game, err = g.inPort.PredictGame(game)
-			if err != nil {
-				continue
-			}
-			games = append(games, game)
-		}
-		err = g.inPort.SaveGame(games)
-		if err != nil {
-			c.JSON(200, utils.Failure("", err.Error()))
-			return
-		}
-	} else {
-		err := g.processSingleGame(path)
-		if err != nil {
-			c.JSON(200, utils.Failure("", err.Error()))
-			return
-		}
+		c.JSON(200, utils.Success("", "已加入游戏"))
+		return
 	}
-	c.JSON(200, utils.Success("", "已加入游戏"))
+	password, _ := (*payload)["password"].(string)
+	result, err := g.inPort.ImportGame(path, password)
+	if err != nil {
+		c.JSON(200, utils.Failure("", err.Error()))
+		return
+	}
+	c.JSON(200, utils.Success(map[string]bool{"is_many": result.IsMany, "need_pass": result.NeedPass}, result.Message))
 }
 
 // GET
@@ -161,6 +100,7 @@ func (g *GinAPI) DeleteGame(c *gin.Context) {
 	}
 	if request.Id == "" {
 		c.JSON(200, utils.Failure("缺少参数", "缺少 category_id 参数"))
+		return
 	}
 	deleteAll := c.Query("delete_all") == "1"
 	game := utils.GameVo2DTO(request, nil)
@@ -264,7 +204,7 @@ func (g *GinAPI) EditGame(c *gin.Context) {
 }
 
 // POST
-func OpenFolder(c *gin.Context) {
+func (g *GinAPI) OpenFolder(c *gin.Context) {
 	payload := getBody(c)
 	if payload == nil {
 		c.JSON(200, utils.Failure("", "缺少body参数"))
@@ -276,8 +216,11 @@ func OpenFolder(c *gin.Context) {
 		c.JSON(200, utils.Failure("", "缺少path参数"))
 		return
 	}
-	cmd := exec.Command("explorer", path)
-	cmd.Start()
+	if err := g.inPort.OpenFolder(path); err != nil {
+		c.JSON(200, utils.Failure("", err.Error()))
+		return
+	}
+	c.JSON(200, utils.Success("", "已打开文件夹"))
 }
 
 func getBody(c *gin.Context) *map[string]interface{} {
@@ -301,15 +244,4 @@ func procesIconPath(path string) string {
 		}
 		return s
 	}
-}
-
-func (g *GinAPI) processSingleGame(path string) error {
-	game := in.GameDTO{Path: path}
-	var err error
-	game, err = g.inPort.PredictGame(game)
-	if err != nil {
-		//c.JSON(200, utils.Failure("预测游戏信息出错：", err.Error()))
-		return err
-	}
-	return g.inPort.SaveGame([]in.GameDTO{game})
 }

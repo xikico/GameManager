@@ -10,11 +10,9 @@ import (
 	domainUtils "GameManager/domain/utils"
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
+	"net/http"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
 )
 
@@ -103,12 +101,7 @@ func (a *App) DeleteGame(game in.GameDTO, delAll bool) error {
 
 // OpenFolder 在资源管理器中打开指定目录
 func (a *App) OpenFolder(path string) error {
-	path = domainUtils.NormalizePath(path)
-	if path == "" {
-		return errors.New("路径不能为空")
-	}
-	cmd := exec.Command("explorer", path)
-	return cmd.Start()
+	return a.manager.OpenFolder(path)
 }
 
 // ---------- 添加游戏 ----------
@@ -123,70 +116,13 @@ type AddGameResult struct {
 // 文件夹 → 预测信息后入库；压缩包 → 先解压再入库；
 // 包含多个子游戏的文件夹 → 返回 IsMany=true，由前端确认后调用 ConfirmAddMany。
 func (a *App) AddGame(path, password string) (AddGameResult, error) {
-	path = domainUtils.NormalizePath(path)
-	pathType, err := analysisPath(path)
-	if err != nil {
-		return AddGameResult{}, err
-	}
-	switch pathType {
-	case singleGameFolder:
-		if err := a.processSingleGame(path); err != nil {
-			return AddGameResult{}, err
-		}
-		return AddGameResult{Message: "已加入游戏"}, nil
-	case manyGameFolder:
-		return AddGameResult{IsMany: true, Message: "是否将其作为一个分类进行批量添加"}, nil
-	case zipFile:
-		dir, err := a.manager.UnzipGame(path, password)
-		if err != nil {
-			if err.Error() == "密码错误或需要密码但未提供" {
-				return AddGameResult{NeedPass: true, Message: "需要密码或密码错误"}, nil
-			}
-			return AddGameResult{}, err
-		}
-		if err := a.processSingleGame(dir); err != nil {
-			return AddGameResult{}, err
-		}
-		return AddGameResult{Message: "已加入游戏"}, nil
-	}
-	return AddGameResult{}, errors.New("无法识别的路径类型")
+	result, err := a.manager.ImportGame(path, password)
+	return AddGameResult{IsMany: result.IsMany, NeedPass: result.NeedPass, Message: result.Message}, err
 }
 
 // ConfirmAddMany 将文件夹内的所有子目录批量添加，并把文件夹名作为分类
 func (a *App) ConfirmAddMany(path string) error {
-	path = domainUtils.NormalizePath(path)
-	f, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("打不开文件夹：%w", err)
-	}
-	defer f.Close()
-
-	entries, err := f.ReadDir(-1)
-	if err != nil {
-		return fmt.Errorf("读取文件夹失败：%w", err)
-	}
-
-	games := make([]in.GameDTO, 0, len(entries))
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		game := in.GameDTO{
-			Path: filepath.Join(path, entry.Name()),
-			Category: in.CategoryDTO{
-				Name: filepath.Base(path),
-			},
-		}
-		game, err = a.manager.PredictGame(game)
-		if err != nil {
-			continue
-		}
-		games = append(games, game)
-	}
-	if len(games) == 0 {
-		return errors.New("文件夹内没有找到可添加的游戏")
-	}
-	return a.manager.SaveGame(games)
+	return a.manager.ConfirmImportMany(path)
 }
 
 // PredictGame 预测游戏启动路径等信息（不保存）
@@ -198,16 +134,17 @@ func (a *App) PredictGame(game in.GameDTO) (in.GameDTO, error) {
 
 // EditGamePayload 编辑游戏的请求参数（与原 gin 表单接口等价，改用 JSON 传输）
 type EditGamePayload struct {
-	Id          string
-	IconPath    string
-	Name        string
-	NickName    string
-	Series      string
-	Description string
-	Path        string
-	StartPath   string
-	CategoryId  string
-	IsPlay      bool
+	Id           string
+	IconPath     string
+	Name         string
+	NickName     string
+	Series       string
+	Description  string
+	Path         string
+	StartPath    string
+	CategoryId   string
+	CategoryName string
+	IsPlay       bool
 	// Imgs 完整的最终展示图列表（data URL），全量替换；传空数组则清空截图
 	Imgs []string
 }
@@ -222,7 +159,7 @@ func (a *App) EditGame(payload EditGamePayload) error {
 		Description: payload.Description,
 		Path:        domainUtils.NormalizePath(payload.Path),
 		StartPath:   domainUtils.NormalizePath(payload.StartPath),
-		Category:    in.CategoryDTO{Id: payload.CategoryId},
+		Category:    in.CategoryDTO{Id: payload.CategoryId, Name: payload.CategoryName},
 		IsPlay:      payload.IsPlay,
 	}
 	// Imgs != nil 时执行全量替换（空数组 = 清空截图）；未提供该字段则不修改
@@ -230,28 +167,17 @@ func (a *App) EditGame(payload EditGamePayload) error {
 		game.Imgs = make([]in.Img, 0, len(payload.Imgs))
 		for _, dataURLStr := range payload.Imgs {
 			data, err := decodeDataURL(dataURLStr)
-			if err == nil {
-				game.Imgs = append(game.Imgs, data)
+			if err != nil {
+				return fmt.Errorf("解析游戏截图失败: %w", err)
 			}
+			game.Imgs = append(game.Imgs, data)
 		}
 	}
 	return a.manager.EditGame(game, game)
 }
 
-// ---------- 内部工具 ----------
-
-func (a *App) processSingleGame(path string) error {
-	game, err := a.manager.PredictGame(in.GameDTO{Path: path})
-	if err != nil {
-		return err
-	}
-	return a.manager.SaveGame([]in.GameDTO{game})
-}
-
-var dataURLPrefix = "data:image/jpeg;base64,"
-
 func dataURL(data []byte) string {
-	return dataURLPrefix + base64.StdEncoding.EncodeToString(data)
+	return "data:" + http.DetectContentType(data) + ";base64," + base64.StdEncoding.EncodeToString(data)
 }
 
 func decodeDataURL(s string) ([]byte, error) {
@@ -259,43 +185,4 @@ func decodeDataURL(s string) ([]byte, error) {
 		s = s[idx+len("base64,"):]
 	}
 	return base64.StdEncoding.DecodeString(s)
-}
-
-// ---------- 路径类型分析（与 gin 适配器共用同一逻辑） ----------
-
-type pathType int
-
-const (
-	singleGameFolder pathType = iota
-	manyGameFolder
-	zipFile
-)
-
-func analysisPath(filePath string) (pathType, error) {
-	info, err := os.Stat(filePath)
-	if err != nil {
-		return zipFile, fmt.Errorf("获取文件信息失败：%e", err)
-	}
-	if !info.IsDir() {
-		return zipFile, nil
-	}
-	f, err := os.Open(filePath)
-	if err != nil {
-		return zipFile, fmt.Errorf("打开文件夹失败：%e", err)
-	}
-	defer f.Close()
-
-	entries, err := f.ReadDir(-1)
-	if err != nil {
-		return zipFile, fmt.Errorf("读取所有目录失败：%e", err)
-	}
-	if len(entries) == 0 {
-		return zipFile, errors.New("传入的是个空目录")
-	}
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			return singleGameFolder, nil
-		}
-	}
-	return manyGameFolder, nil
 }

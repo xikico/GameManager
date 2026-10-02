@@ -50,6 +50,7 @@ export interface EditGamePayload {
   Path: string
   StartPath: string
   CategoryId: string
+  CategoryName: string
   IsPlay: boolean
   // Imgs 完整的最终展示图列表（data URL），全量替换；传空数组则清空截图
   Imgs: string[]

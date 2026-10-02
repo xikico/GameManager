@@ -5,9 +5,19 @@ import (
 	"context"
 )
 
-type Utils interface {
+type GameOperator interface {
 	OpenGame(game *entity.Game) error
 	DeleteGame(game *entity.Game) error
-	Img2Base64(ctx context.Context)
+}
+
+type FolderOpener interface {
+	OpenFolder(path string) error
+}
+
+type ClipboardSettings interface {
 	SetClipboardImageDetectionEnabled(enabled bool)
+}
+
+type ClipboardMonitor interface {
+	Img2Base64(ctx context.Context)
 }
