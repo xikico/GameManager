@@ -161,7 +161,7 @@ import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 const props = defineProps<{ game: GameDTO; categories: CategoryDTO[] }>()
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'saved'): void
+  (e: 'saved', updatedGame: GameDTO): void
 }>()
 
 const saving = ref(false)
@@ -350,7 +350,26 @@ async function save() {
       IsPlay: form.IsPlay,
       Imgs: displayImgs.value,
     })
-    emit('saved')
+    
+    // 构建更新后的游戏对象
+    const updatedGame: GameDTO = {
+      ...props.game,
+      IconPath: form.IconPath.trim(),
+      Name: form.Name.trim(),
+      NickName: form.NickName.trim(),
+      Series: form.Series.trim(),
+      Description: form.Description.trim(),
+      Path: form.Path.trim(),
+      StartPath: form.StartPath.trim(),
+      Category: {
+        Id: form.CategoryId,
+        Name: form.CategoryName.trim(),
+        Num: props.categories.find(c => c.Id === form.CategoryId)?.Num ?? 0,
+      },
+      IsPlay: form.IsPlay,
+    }
+    
+    emit('saved', updatedGame)
     emit('close')
   } catch (err: unknown) {
     alert('编辑失败：' + String(err))
@@ -379,7 +398,9 @@ function doDelete(delAll: boolean) {
     .deleteGame(props.game, delAll)
     .then(() => {
       alert('删除成功')
-      emit('saved')
+      // 删除时也返回更新后的对象（标记为已删除），让父组件能够移除
+      const deletedGame: GameDTO = { ...props.game, IsDel: true }
+      emit('saved', deletedGame)
       emit('close')
     })
     .catch((err: unknown) => alert('删除失败：' + String(err)))

@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { api, formatTime } from '../api'
 import type { GameDTO } from '../types'
 
@@ -42,7 +42,10 @@ const displayName = computed(() => props.game.NickName || props.game.Name)
 
 function resolveIcon() {
   const p = props.game.IconPath
-  if (!p) return
+  if (!p) {
+    iconSrc.value = ''
+    return
+  }
   if (p.startsWith('data:')) {
     iconSrc.value = p
     return
@@ -56,6 +59,11 @@ function resolveIcon() {
 }
 
 onMounted(resolveIcon)
+
+// 监听 game prop 的变化，特别是 IconPath 的变化
+watch(() => props.game.IconPath, () => {
+  resolveIcon()
+})
 
 function open() {
   api.openGame(props.game).catch((err: unknown) => emit('launch-error', String(err)))

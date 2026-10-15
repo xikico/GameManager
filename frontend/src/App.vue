@@ -57,7 +57,7 @@
           </button>
         </div>
 
-        <form v-if="!seriesView" class="filter-panel" @submit.prevent="loadGames">
+        <form v-if="!seriesView" class="filter-panel" @submit.prevent="onSearch">
           <label class="search-box">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
             <input v-model="keyword" placeholder="搜索游戏名称" aria-label="搜索游戏名称" />
@@ -141,7 +141,7 @@
       :game="editing"
       :categories="categories"
       @close="editing = null"
-      @saved="onSaved"
+      @saved="onGameSaved"
     />
   </div>
 </template>
@@ -276,6 +276,12 @@ async function loadGames() {
   }
 }
 
+function onSearch() {
+  // 主动搜索时重置滚动位置
+  if (contentEl.value) contentEl.value.scrollTop = 0
+  loadGames()
+}
+
 async function loadCategories() {
   try {
     categories.value = await api.getAllCategory()
@@ -288,6 +294,8 @@ function selectCategory(id: string) {
   if (currentCategoryId.value === id) return
   currentCategoryId.value = id
   seriesView.value = ''
+  // 切换分类时重置滚动位置到顶部
+  if (contentEl.value) contentEl.value.scrollTop = 0
   loadGames()
 }
 
@@ -298,6 +306,8 @@ function clearFilters() {
   playFilter.value = null
   dateFrom.value = ''
   dateTo.value = ''
+  // 清除筛选后重置滚动位置
+  if (contentEl.value) contentEl.value.scrollTop = 0
   loadGames()
 }
 
@@ -309,10 +319,14 @@ function showToast(message: string) {
 
 function openSeries(name: string) {
   seriesView.value = name
+  // 进入系列视图时重置滚动位置
+  if (contentEl.value) contentEl.value.scrollTop = 0
 }
 
 function backToList() {
   seriesView.value = ''
+  // 返回列表时重置滚动位置
+  if (contentEl.value) contentEl.value.scrollTop = 0
 }
 
 function openEdit(game: GameDTO) {
@@ -320,11 +334,34 @@ function openEdit(game: GameDTO) {
 }
 
 function onAdded() {
-  refreshLibrary(false)
+  // 添加游戏后保持滚动位置
+  refreshLibrary(true)
 }
 
-async function onSaved() {
-  await refreshLibrary(true)
+async function onGameSaved(updatedGame: GameDTO) {
+  // 如果游戏被删除，从列表中移除
+  if (updatedGame.IsDel) {
+    games.value = games.value.filter(g => g.Id !== updatedGame.Id)
+    await loadCategories()
+    ensureSelectedCategory()
+    return
+  }
+  
+  // 使用 Vue 响应式更新，找到并更新对应的游戏对象
+  const index = games.value.findIndex(g => g.Id === updatedGame.Id)
+  if (index !== -1) {
+    // 直接替换对象，Vue 会追踪变化并更新视图
+    games.value[index] = updatedGame
+  }
+  
+  // 如果分类改变了，需要更新分类列表（但不需要重新加载游戏）
+  await loadCategories()
+  ensureSelectedCategory()
+  
+  // 如果当前游戏不在当前分区了，从列表中移除
+  if (updatedGame.Category.Id !== currentCategoryId.value) {
+    games.value = games.value.filter(g => g.Id !== updatedGame.Id)
+  }
 }
 
 function ensureSelectedCategory() {
